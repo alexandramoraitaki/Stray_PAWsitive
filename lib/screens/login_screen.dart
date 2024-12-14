@@ -9,6 +9,7 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5), // Χρώμα φόντου
+<<<<<<< HEAD
       body: Stack(
         children: [
           // Logo πάνω δεξιά
@@ -18,6 +19,18 @@ class LoginScreen extends StatelessWidget {
             child: Image.asset(
               'assets/logo/logo.png',
               height: 80,
+=======
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Λογότυπο
+            Image.asset(
+              'assets/logo.logo.png', // Βάλε το λογότυπο εδώ
+              height: 100,
+>>>>>>> 107a130ac1487188391181d01512940f48a71cfb
             ),
           ),
 
