@@ -35,7 +35,7 @@ class LoginScreen extends StatelessWidget {
           children: [
             // Λογότυπο
             Image.asset(
-              'assets/logo.png', // Βάλε το λογότυπο εδώ
+              'assets/logo.logo.png', // Βάλε το λογότυπο εδώ
               height: 100,
             ),
             const SizedBox(height: 32),
