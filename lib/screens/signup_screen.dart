@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'menu_screen.dart';
-import 'signup_screen.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class SignupScreen extends StatelessWidget {
+  const SignupScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +19,7 @@ class LoginScreen extends StatelessWidget {
               height: 80,
             ),
           ),
-
-          // Πλαίσιο login στο κέντρο
+          // Πλαίσιο sign up στο κέντρο
           Center(
             child: Container(
               width: MediaQuery.of(context).size.width * 0.9, // 90% του πλάτους
@@ -40,9 +38,9 @@ class LoginScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Τίτλος "Login"
+                  // Τίτλος "Sign Up"
                   const Text(
-                    'Login',
+                    'Sign Up',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -78,6 +76,21 @@ class LoginScreen extends StatelessWidget {
                       fillColor: Colors.white,
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // Confirm Password TextField
+                  TextField(
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm Password',
+                      labelStyle: const TextStyle(color: Colors.purple),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                  ),
                   const SizedBox(height: 24),
 
                   // GO Button
@@ -93,7 +106,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      // Πλοήγηση στο MenuScreen (πρόσθεσε έλεγχο διαπιστευτηρίων αν χρειάζεται)
+                      // Πλοήγηση στο MenuScreen μετά το Sign Up
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -105,24 +118,19 @@ class LoginScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 18, color: Colors.white),
                     ),
                   ),
-                  const SizedBox(height: 16),
-
-                  // Sign Up Button
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SignupScreen()),
-                      );
-                    },
-                    child: const Text(
-                      'Sign Up',
-                      style: TextStyle(fontSize: 16, color: Colors.pinkAccent),
-                    ),
-                  ),
                 ],
               ),
+            ),
+          ),
+          // Back Button πάνω αριστερά
+          Positioned(
+            top: 20,
+            left: 20,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () {
+                Navigator.pop(context); // Επιστροφή στην προηγούμενη οθόνη
+              },
             ),
           ),
         ],
