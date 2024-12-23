@@ -6,6 +6,7 @@ import 'upload_feeding_spawt_screen.dart';
 import 'about_us_screen.dart';
 import 'bot_screen.dart';
 import 'map_screen.dart';
+import 'logout_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
@@ -60,7 +61,10 @@ class MenuScreen extends StatelessWidget {
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.pinkAccent),
               onPressed: () {
-                Navigator.pop(context);
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LogoutScreen()),
+                );
               },
             ),
           ),

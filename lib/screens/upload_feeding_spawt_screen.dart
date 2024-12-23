@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'menu_screen.dart';
+import 'map_screen.dart';
+import 'feeding_spawt_profile_screen.dart';
 import 'user_profile_screen.dart';
 import 'bot_screen.dart';
+import 'menu_screen.dart';
 
 class UploadFeedingSpawtScreen extends StatelessWidget {
   const UploadFeedingSpawtScreen({super.key});
@@ -32,42 +34,18 @@ class UploadFeedingSpawtScreen extends StatelessWidget {
             ),
           ),
 
-          // Πίσω βέλος πάνω αριστερά
+          // Βελάκι πάνω αριστερά για επιστροφή στο Menu
           Positioned(
             top: 20,
             left: 20,
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.pinkAccent),
               onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-          ),
-
-          // Εικονίδιο Προφίλ πάνω αριστερά
-          Positioned(
-            top: 20,
-            left: 70,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => const UserProfileScreen()),
+                  MaterialPageRoute(builder: (context) => const MenuScreen()),
                 );
               },
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.pinkAccent, width: 2),
-                ),
-                child: const Icon(
-                  Icons.person,
-                  size: 28,
-                  color: Colors.pinkAccent,
-                ),
-              ),
             ),
           ),
 
@@ -77,32 +55,62 @@ class UploadFeedingSpawtScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 100), // Κενό από το πάνω μέρος
 
-                // Τίτλος "Registration"
-                Container(
-                  width: screenWidth * 0.6,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFE4E1),
-                    borderRadius: BorderRadius.circular(16.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Text(
-                      'Registration',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                // Τίτλος "Registration" με κουμπιά "Χ" και "✓" πιο κεντρικά
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: screenWidth * 0.1),
+                      child: IconButton(
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const MenuScreen()),
+                          );
+                        },
                       ),
                     ),
-                  ),
+                    Container(
+                      width: screenWidth * 0.5,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFE4E1),
+                        borderRadius: BorderRadius.circular(16.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text(
+                          'Registration',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(right: screenWidth * 0.1),
+                      child: IconButton(
+                        icon: const Icon(Icons.check, color: Colors.green),
+                        onPressed: () {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const FeedingSpawtProfileScreen()),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
+
                 const SizedBox(height: 30),
 
                 // Εικόνα
@@ -122,8 +130,7 @@ class UploadFeedingSpawtScreen extends StatelessWidget {
                   ),
                   child: Center(
                     child: IconButton(
-                      icon:
-                          const Icon(Icons.image, size: 50, color: Colors.grey),
+                      icon: const Icon(Icons.image, size: 50, color: Colors.grey),
                       onPressed: () {
                         // Λογική για την προσθήκη εικόνας
                       },
@@ -181,13 +188,14 @@ class UploadFeedingSpawtScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           ),
 
           // Dog Bot κάτω δεξιά
           Positioned(
-            bottom: 20,
+            bottom: 80,
             right: 20,
             child: GestureDetector(
               onTap: () {

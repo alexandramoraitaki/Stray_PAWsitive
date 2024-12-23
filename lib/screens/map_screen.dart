@@ -83,8 +83,8 @@ class _MapScreenState extends State<MapScreen> {
       onSelected: (bool selected) {
         setState(() {
           filters[label] = selected; // Ενημέρωση του φίλτρου
+          _applyFilters(); // Εφαρμογή φίλτρων στα markers
         });
-        _applyFilters(); // Εφαρμογή φίλτρων στα markers
       },
       backgroundColor: const Color(0xFFF5EAFB),
       selectedColor: Colors.pinkAccent,
@@ -219,39 +219,60 @@ class _MapScreenState extends State<MapScreen> {
                     borderRadius: BorderRadius.circular(16.0),
                   ),
                   builder: (BuildContext context) {
-                    return Container(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    return StatefulBuilder(
+                      builder: (BuildContext context, StateSetter setModalState) {
+                        return Container(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text(
-                                'Filters',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Filters',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close),
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                    },
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.close),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                },
+                              const SizedBox(height: 10),
+                              Wrap(
+                                spacing: 10,
+                                runSpacing: 10,
+                                children: filters.keys.map((filter) {
+                                  return FilterChip(
+                                    label: Text(filter),
+                                    selected: filters[filter] ?? false,
+                                    onSelected: (bool selected) {
+                                      setModalState(() {
+                                        filters[filter] = selected;
+                                      });
+                                      _applyFilters();
+                                    },
+                                    backgroundColor: const Color(0xFFF5EAFB),
+                                    selectedColor: Colors.pinkAccent,
+                                    labelStyle: TextStyle(
+                                      color: filters[filter] ?? false
+                                          ? Colors.white
+                                          : Colors.purple,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  );
+                                }).toList(),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: filters.keys
-                                .map((filter) => _buildFilterChip(filter))
-                                .toList(),
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     );
                   },
                 );

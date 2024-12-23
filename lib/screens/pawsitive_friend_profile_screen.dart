@@ -1,29 +1,36 @@
 import 'package:flutter/material.dart';
-import 'pawsitive_friend_profile_screen.dart';
-import 'menu_screen.dart';
 import 'map_screen.dart';
 import 'user_profile_screen.dart';
 import 'bot_screen.dart';
+import 'menu_screen.dart';
 
-class UploadPawsitiveFriendScreen extends StatelessWidget {
-  const UploadPawsitiveFriendScreen({super.key});
+class PawsitiveFriendProfileScreen extends StatefulWidget {
+  const PawsitiveFriendProfileScreen({super.key});
+
+  @override
+  State<PawsitiveFriendProfileScreen> createState() => _PawsitiveFriendProfileScreenState();
+}
+
+class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScreen> {
+  bool isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: Stack(
         children: [
-          // Περιεχόμενο (πρώτο για να είναι "κάτω" από τα Positioned)
+          // 1. Βάλε το SingleChildScrollView πρώτο, ώστε να είναι "κάτω"
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 80),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Τίτλος "Registration"
+                  // Τίτλος "Pawsitive Friend Profile"
                   Container(
                     width: screenWidth * 0.6,
                     padding: const EdgeInsets.symmetric(vertical: 10),
@@ -40,7 +47,7 @@ class UploadPawsitiveFriendScreen extends StatelessWidget {
                     ),
                     child: const Center(
                       child: Text(
-                        'Registration',
+                        'Pawsitive Friend Profile',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -85,67 +92,56 @@ class UploadPawsitiveFriendScreen extends StatelessWidget {
                   _buildProfileField('Date:'),
                   const SizedBox(height: 20),
 
-                  // Επιλογές για "DOG" και "CAT"
+                  // Επιλογές (DOG, MALE, SMALL, NOT FRIENDLY)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildOptionButton('DOG'),
-                      _buildOptionButton('CAT'),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Επιλογές για "MALE" και "FEMALE"
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
                       _buildOptionButton('MALE'),
-                      _buildOptionButton('FEMALE'),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-
-                  // Επιλογές για "SMALL", "MEDIUM", "LARGE"
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
                       _buildOptionButton('SMALL'),
-                      _buildOptionButton('MEDIUM'),
-                      _buildOptionButton('LARGE'),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Επιλογές για "FRIENDLY" και "NOT FRIENDLY"
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildOptionButton('FRIENDLY'),
                       _buildOptionButton('NOT FRIENDLY'),
                     ],
                   ),
                   const SizedBox(height: 20),
 
-                  // Πεδίο "Description"
-                  Container(
-                    width: screenWidth * 0.8,
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                  // Περιοχή σχολίων με δυνατότητα swipe up
+                  GestureDetector(
+                    onVerticalDragUpdate: (details) {
+                      if (details.delta.dy < 0) {
+                        // Swipe up
+                        setState(() {
+                          isExpanded = true;
+                        });
+                      } else if (details.delta.dy > 0) {
+                        // Swipe down
+                        setState(() {
+                          isExpanded = false;
+                        });
+                      }
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: screenWidth * 0.9,
+                      height: isExpanded ? screenHeight * 0.4 : 100,
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const TextField(
+                        maxLines: null,
+                        expands: true,
+                        decoration: InputDecoration(
+                          hintText: 'Comments',
+                          border: InputBorder.none,
                         ),
-                      ],
-                    ),
-                    child: const TextField(
-                      maxLines: 5,
-                      decoration: InputDecoration(
-                        hintText: 'Description',
-                        border: InputBorder.none,
                       ),
                     ),
                   ),
@@ -154,7 +150,7 @@ class UploadPawsitiveFriendScreen extends StatelessWidget {
             ),
           ),
 
-          // Logo πάνω δεξιά
+          // 2. Τοποθέτησε τα Positioned widgets "πάνω" από το περιεχόμενο
           Positioned(
             top: 20,
             right: 20,
@@ -171,8 +167,6 @@ class UploadPawsitiveFriendScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          // Βελάκι πάνω αριστερά για επιστροφή στο Menu
           Positioned(
             top: 20,
             left: 20,
@@ -181,13 +175,11 @@ class UploadPawsitiveFriendScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const MenuScreen()),
+                  MaterialPageRoute(builder: (context) => const MapScreen()),
                 );
               },
             ),
           ),
-
-          // Εικονίδιο Προφίλ πάνω αριστερά
           Positioned(
             top: 20,
             left: 70,
@@ -213,36 +205,6 @@ class UploadPawsitiveFriendScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          // Κουμπιά "Χ" και "✓" στο ίδιο ύψος και μέρος με το UploadFeedingSpawt
-          Positioned(
-            top: 100,
-            left: screenWidth * 0.1,
-            child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.red),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const MenuScreen()),
-                );
-              },
-            ),
-          ),
-          Positioned(
-            top: 100,
-            right: screenWidth * 0.1,
-            child: IconButton(
-              icon: const Icon(Icons.check, color: Colors.green),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PawsitiveFriendProfileScreen()),
-                );
-              },
-            ),
-          ),
-
-          // Dog Bot κάτω δεξιά
           Positioned(
             bottom: 20,
             right: 20,
@@ -291,7 +253,7 @@ class UploadPawsitiveFriendScreen extends StatelessWidget {
     );
   }
 
-  // Μέθοδος για τα κουμπιά επιλογών (DOG, CAT, MALE, FEMALE κ.λπ.)
+  // Μέθοδος για τα κουμπιά επιλογών
   Widget _buildOptionButton(String label) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
