@@ -1,16 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'map_screen.dart';
 import 'menu_screen.dart';
 import 'user_profile_screen.dart';
 import 'bot_screen.dart';
 import 'feeding_spawt_profile_screen.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'google_maps_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
+import 'package:intl/intl.dart';
+import 'package:geocoding/geocoding.dart';
 
 
 
@@ -26,6 +25,27 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   File? image;
   String? location;
   DateTime? selectedDate;
+
+  // Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
+Future<void> _getAddressFromCoordinates(LatLng position) async {
+  try {
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+      position.latitude,
+      position.longitude,
+    );
+
+    if (placemarks.isNotEmpty) {
+      Placemark place = placemarks.first;
+      setState(() {
+        location = '${place.street}, ${place.locality}, ${place.country}';
+      });
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Could not fetch address: $e")),
+    );
+  }
+}
 
 
   void _handleGoogleMapsSelection(Uri uri) {
@@ -83,6 +103,32 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
               },
             ),
           ),
+
+            // Εικονίδιο Προφίλ πάνω αριστερά
+        Positioned(
+          top: 20,
+          left: 70,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.pinkAccent, width: 2),
+              ),
+              child: const Icon(
+                Icons.person,
+                size: 28,
+                color: Colors.pinkAccent,
+              ),
+            ),
+          ),
+        ),
 
           // Περιεχόμενο
           Center(
@@ -167,6 +213,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                         },
                       ),
                     ),
+                    
                   ],
                 ),
 
@@ -250,10 +297,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
 
     // Αν ο χρήστης επιλέξει τοποθεσία, ενημερώνεται το πεδίο location
     if (selectedLocation != null) {
-      setState(() {
-        location =
-            'Latitude: ${selectedLocation.latitude}, Longitude: ${selectedLocation.longitude}';
-      });
+      await _getAddressFromCoordinates(selectedLocation);
     }
   },
                   child: Container(
@@ -292,6 +336,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                       lastDate: DateTime(2100),
                     );
                     if (pickedDate != null) {
+                        print('Selected date: $pickedDate');
                       setState(() {
                         selectedDate = pickedDate;
                       });
@@ -314,8 +359,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                     child: Text(
                       selectedDate == null
                           ? 'Select Date'
-                          : 'Date: ${selectedDate!.toLocal()}'
-                              .split(' ')[0],
+                          : 'Date: ${DateFormat('yyyy-MM-dd').format(selectedDate!)}',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -324,9 +368,56 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 20),
+
+         // Πεδίο "Description"
+                Container(
+                  width: screenWidth * 0.8,
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const TextField(
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      hintText: 'Description',
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
+
+
+          // Εικονίδιο Bot κάτω δεξιά
+        Positioned(
+          bottom: 20,
+          right: 20,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BotScreen()),
+              );
+            },
+            child: Image.asset(
+              'assets/icons/bot.png',
+              height: 60,
+            ),
+          ),
+        ),
+
+        
         ],
       ),
     );

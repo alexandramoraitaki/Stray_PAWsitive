@@ -148,31 +148,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
               },
             ),
           ),
-          Positioned(
-            top: 20,
-            left: 70,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const UserProfileScreen()),
-                );
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.pinkAccent, width: 2),
-                ),
-                child: const Icon(
-                  Icons.person,
-                  size: 28,
-                  color: Colors.pinkAccent,
-                ),
-              ),
-            ),
-          ),
+          
           Positioned(
             bottom: 20,
             right: 20,

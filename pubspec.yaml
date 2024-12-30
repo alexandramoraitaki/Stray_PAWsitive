@@ -31,6 +31,10 @@ dependencies:
   flutter:
     sdk: flutter
   url_launcher: ^6.1.9 
+  geolocator: ^10.0.1
+  geocoding: ^2.0.5
+  intl: ^0.18.0
+ 
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -42,7 +46,6 @@ dependencies:
   camera: ^0.11.0+2  # Εξάρτηση για την κάμερα
   image_picker: ^0.8.7
   file_picker: ^5.2.5
-  geolocator: ^13.0.2
 
 
 dev_dependencies:

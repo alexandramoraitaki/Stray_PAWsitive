@@ -41,8 +41,8 @@ class GoogleMapsScreenState extends State<GoogleMapsScreen> {
         ],
       ),
       body: GoogleMap(
-        initialCameraPosition: const CameraPosition(
-          target: LatLng(37.7749, -122.4194), // Αρχική τοποθεσία
+        initialCameraPosition:  CameraPosition(
+          target:  widget.initialLocation,
           zoom: 10,
         ),
         onTap: _selectLocation, // Επιλογή τοποθεσίας με tap
