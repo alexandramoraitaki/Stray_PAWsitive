@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'map_screen.dart';
 import 'menu_screen.dart';
@@ -5,7 +6,16 @@ import 'user_profile_screen.dart';
 import 'bot_screen.dart';
 
 class FeedingSpawtProfileScreen extends StatelessWidget {
-  const FeedingSpawtProfileScreen({super.key});
+  final File image; // Εικόνα που περνιέται από την προηγούμενη οθόνη
+  final String location; // Τοποθεσία που περνιέται από την προηγούμενη οθόνη
+  final String date;
+
+  const FeedingSpawtProfileScreen({
+    super.key,
+    required this.image,
+    required this.location,
+    required this.date,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +63,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   // Εικόνα
                   Container(
                     width: screenWidth * 0.8,
-                    height: 150,
+                    height: 200,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16.0),
@@ -65,19 +75,18 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: IconButton(
-                        icon: const Icon(Icons.image, size: 50, color: Colors.grey),
-                        onPressed: () {
-                          print("Add image logic executed...");
-                        },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16.0),
+                      child: Image.file(
+                        image,
+                        fit: BoxFit.cover,
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
 
                   // Πεδίο "Location"
-                  _buildProfileField('Location:'),
+                  _buildProfileField('Location: $location'),
                   const SizedBox(height: 20),
 
                   // Στατική Περιοχή Σχολίων
@@ -115,7 +124,6 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
             right: 20,
             child: GestureDetector(
               onTap: () {
-                print("Navigating to MenuScreen...");
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const MenuScreen()),
@@ -133,7 +141,6 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
             child: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.pinkAccent),
               onPressed: () {
-                print("Navigating to MapScreen...");
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const MapScreen()),
@@ -146,7 +153,6 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
             left: 70,
             child: GestureDetector(
               onTap: () {
-                print("Navigating to UserProfileScreen...");
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -172,7 +178,6 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
             right: 20,
             child: GestureDetector(
               onTap: () {
-                print("Navigating to BotScreen...");
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const BotScreen()),

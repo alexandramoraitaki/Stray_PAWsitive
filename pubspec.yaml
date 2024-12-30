@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  url_launcher: ^6.1.9 
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -37,6 +38,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   google_fonts: ^6.1.0
   google_maps_flutter: ^2.2.0
+
+  camera: ^0.11.0+2  # Εξάρτηση για την κάμερα
+  image_picker: ^0.8.7
+  file_picker: ^5.2.5
+  geolocator: ^13.0.2
 
 
 dev_dependencies:
