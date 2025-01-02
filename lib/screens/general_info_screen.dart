@@ -77,37 +77,33 @@ class GeneralInfoScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
 
-                  // Κουμπί "DOG"
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFE4E1),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 10,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.0),
-                      ),
+                  // Επικεφαλίδα "DOG"
+                  Container(
+                    width: screenWidth * 0.7,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFE4E1),
+                      borderRadius: BorderRadius.circular(16.0),
                     ),
-                    onPressed: () {
-                      debugPrint('DOG pressed');
-                    },
-                    child: const Text(
-                      'DOG',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    child: const Center(
+                      child: Text(
+                        'DOG',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Γκρι πλαίσιο + κείμενο "DOG Info"
+                  // Πλαίσιο "DOG Info"
                   Container(
-                    width: screenWidth * 0.9,
+                    width: screenWidth * 0.8,
+                    padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16.0),
                       boxShadow: [
                         BoxShadow(
@@ -117,8 +113,7 @@ class GeneralInfoScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(16.0),
+                    child: const SingleChildScrollView(
                       child: Text(
                         'Οι σκύλοι είναι οι πιο πιστοί μας φίλοι και χρειάζονται τη σωστή φροντίδα για να ζουν χαρούμενοι και υγιείς. '
                         'Αν συναντήσετε ένα αδέσποτο σκυλάκι στο δρόμο, να θυμάστε ότι μπορεί να είναι φοβισμένο ή μπερδεμένο. '
@@ -133,43 +128,43 @@ class GeneralInfoScreen extends StatelessWidget {
                         'στον χάρτη της εφαρμογής μας). Θυμηθείτε επίσης ότι η ουρά του δεν είναι πάντα ένδειξη χαράς – '
                         'μπορεί να δείχνει άγχος ή φόβο, οπότε προσεγγίστε το με προσοχή. 🐶\n\n'
                         'Δείξτε του αγάπη, δώστε του λίγο χρόνο και φροντίδα, κι ίσως κερδίσετε έναν φίλο για μια ζωή! 💕',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.black54,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 30),
 
-                  // Κουμπί "CAT"
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFE4E1),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 10,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.0),
-                      ),
+                  // Επικεφαλίδα "CAT"
+                  Container(
+                    width: screenWidth * 0.7,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFE4E1),
+                      borderRadius: BorderRadius.circular(16.0),
                     ),
-                    onPressed: () {
-                      debugPrint('CAT pressed');
-                    },
-                    child: const Text(
-                      'CAT',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    child: const Center(
+                      child: Text(
+                        'CAT',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 16),
 
-                  // Γκρι πλαίσιο + κείμενο "CAT Info"
+                  // Πλαίσιο "CAT Info"
                   Container(
-                    width: screenWidth * 0.9,
+                    width: screenWidth * 0.8,
+                    padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16.0),
                       boxShadow: [
                         BoxShadow(
@@ -179,8 +174,7 @@ class GeneralInfoScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(16.0),
+                    child: const SingleChildScrollView(
                       child: Text(
                         'Οι γάτες είναι οι αριστοκράτισσες του ζωικού βασιλείου – γεμάτες μυστήριο και γοητεία. '
                         '🐾 Αν συναντήσετε μια αδέσποτη γάτα, θυμηθείτε πως κάθε ζωάκι έχει τη δική του προσωπικότητα. '
@@ -199,18 +193,22 @@ class GeneralInfoScreen extends StatelessWidget {
                         'Οι γάτες αγαπούν την ανεξαρτησία τους, αλλά αν κερδίσετε την εμπιστοσύνη τους, θα βρείτε έναν '
                         'ξεχωριστό φίλο που θα σας προσφέρει ατελείωτες στιγμές στοργής – και, φυσικά, λίγη από τη '
                         'χαρακτηριστική «γάτο-υπεροψία» τους! 💖',
-                        style: TextStyle(fontSize: 16),
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.black54,
+                        ),
                       ),
                     ),
                   ),
+                  const SizedBox(height: 30),
 
-                  const SizedBox(height: 16),
-
-                  // Ξεχωριστό κουτί με το extra κείμενο
+                  // Τελικό Πλαίσιο
                   Container(
-                    width: screenWidth * 0.9,
+                    width: screenWidth * 0.8,
+                    padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFE4E1), // Απαλό ροζ (ίδιο με το πλαίσιο DOG)
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16.0),
                       boxShadow: [
                         BoxShadow(
@@ -220,16 +218,17 @@ class GeneralInfoScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Text(
-                        'Δεν βρήκατε αυτό που ψάχνατε; Μην διστάσετε να συνομιλήσετε με το μποτάκι μας! '
-                        'Είναι πάντα έτοιμο να σας καθοδηγήσει με εξειδικευμένες πληροφορίες για τη φροντίδα των φίλων μας. 🐾💬',
-                        style: TextStyle(fontSize: 16),
+                    child: const Text(
+                      'Δεν βρήκατε αυτό που ψάχνατε; Μην διστάσετε να συνομιλήσετε με το μποτάκι μας! '
+                      'Είναι πάντα έτοιμο να σας καθοδηγήσει με εξειδικευμένες πληροφορίες για τη φροντίδα των φίλων μας. 🐾💬',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.black54,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-
                   const SizedBox(height: 40),
                 ],
               ),

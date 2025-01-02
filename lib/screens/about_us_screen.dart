@@ -9,7 +9,6 @@ class AboutUsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -102,7 +101,6 @@ class AboutUsScreen extends StatelessWidget {
                 // Πλαίσιο πληροφοριών
                 Container(
                   width: screenWidth * 0.8,
-                  height: screenHeight * 0.5,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16.0),
