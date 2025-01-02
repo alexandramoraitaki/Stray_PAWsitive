@@ -1,14 +1,116 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'user_profile_screen.dart';
 import 'menu_screen.dart';
 
-class BotScreen extends StatelessWidget {
-  const BotScreen({super.key});
+class BotScreen extends StatefulWidget {
+  const BotScreen({Key? key}) : super(key: key);
+
+  @override
+  State<BotScreen> createState() => _BotScreenState();
+}
+
+// Μοντέλο για τα μηνύματα
+class ChatMessage {
+  final String text;
+  final bool isUser; // true = μήνυμα χρήστη, false = μήνυμα bot
+
+  ChatMessage({required this.text, required this.isUser});
+}
+
+class _BotScreenState extends State<BotScreen> {
+  // Κλειδί OpenAI API
+  final String _openAIApiKey = "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";
+
+  // Χρησιμοποιούμε αυτόν τον controller για να διαβάσουμε από το TextField
+  final TextEditingController _textController = TextEditingController();
+
+  // Λίστα όλων των μηνυμάτων
+  final List<ChatMessage> _messages = [
+    // Ένα μήνυμα bot ως παράδειγμα
+    ChatMessage(text: "Hello! How can I assist you today?", isUser: false),
+  ];
+
+  /// Μέθοδος που καλεί το OpenAI ChatGPT API στέλνοντας ΟΛΗ τη ροή της συνομιλίας
+  Future<String> _generateResponseWithHistory() async {
+    const String apiUrl = "https://api.openai.com/v1/chat/completions";
+
+    // 1. Δημιουργούμε τη λίστα των "messages" στο format του OpenAI
+    //    role: user/assistant/system
+    final List<Map<String, String>> apiMessages = [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant. If the user asks in English, you respond in English. If the user asks in Greek, you respond in Greek."
+      },
+      // Μετατρέπουμε τα μηνύματά μας σε user/assistant
+      ..._messages.map((message) {
+        if (message.isUser) {
+          return {
+            "role": "user",
+            "content": message.text,
+          };
+        } else {
+          return {
+            "role": "assistant",
+            "content": message.text,
+          };
+        }
+      }).toList(),
+    ];
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "Authorization": "Bearer $_openAIApiKey",
+        },
+        body: utf8.encode(jsonEncode({
+          "model": "gpt-3.5-turbo",
+          "messages": apiMessages,
+          "max_tokens": 1000,
+          "temperature": 0.7,
+        })),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final String result = data['choices'][0]['message']['content'];
+        return result.trim();
+      } else {
+        return "Error: Η κλήση στο API απέτυχε [${response.statusCode}]";
+      }
+    } catch (e) {
+      return "Error: $e";
+    }
+  }
+
+  // Αποστολή μηνύματος του χρήστη και λήψη απάντησης από το bot
+  Future<void> _sendMessage() async {
+    final String userInput = _textController.text.trim();
+    if (userInput.isEmpty) return;
+
+    // Προσθέτουμε το μήνυμα του χρήστη στη λίστα
+    setState(() {
+      _messages.add(ChatMessage(text: userInput, isUser: true));
+    });
+
+    // Καθαρίζουμε το TextField
+    _textController.clear();
+
+    // Καλούμε το ChatGPT στέλνοντας ΟΛΟΚΛΗΡΗ τη συνομιλία (_messages)
+    final botResponse = await _generateResponseWithHistory();
+
+    // Προσθέτουμε το μήνυμα του bot στη λίστα
+    setState(() {
+      _messages.add(ChatMessage(text: botResponse, isUser: false));
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -53,7 +155,8 @@ class BotScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const UserProfileScreen()),
+                    builder: (context) => const UserProfileScreen(),
+                  ),
                 );
               },
               child: Container(
@@ -122,75 +225,103 @@ class BotScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: ListView(
-                      children: [
-                        // Εισερχόμενο μήνυμα (Bot)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Image.asset(
-                              'assets/icons/bot.png',
-                              height: 40,
-                              width: 40,
-                            ),
-                            const SizedBox(width: 10),
-                            Flexible(
-                              child: Container(
-                                padding: const EdgeInsets.all(12.0),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF5EAFB),
-                                  borderRadius: BorderRadius.circular(16.0),
-                                ),
-                                child: const Text(
-                                  'Hello! How can I assist you today?',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black,
+                    // Εδώ προβάλλουμε τη λίστα των μηνυμάτων
+                    child: ListView.builder(
+                      itemCount: _messages.length,
+                      itemBuilder: (context, index) {
+                        final message = _messages[index];
+                        // Αν είναι μήνυμα bot (isUser=false),
+                        // το στοίχιζουμε αριστερά, αλλιώς δεξιά.
+                        if (!message.isUser) {
+                          // Μήνυμα bot
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Πατώντας στο bot icon, μπορούμε
+                                // να κάνουμε κάτι επιπλέον αν θέλουμε
+                                GestureDetector(
+                                  onTap: () async {
+                                    // Εδώ, αν θέλεις να στείλεις ξανά όλο το ιστορικό
+                                    // χωρίς να προσθέσεις νέο μήνυμα, καλείς απλώς:
+                                    final newBotResponse =
+                                        await _generateResponseWithHistory();
+                                    setState(() {
+                                      _messages.add(ChatMessage(
+                                        text: newBotResponse,
+                                        isUser: false,
+                                      ));
+                                    });
+                                  },
+                                  child: Image.asset(
+                                    'assets/icons/bot.png',
+                                    height: 40,
+                                    width: 40,
                                   ),
                                 ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Εξερχόμενο μήνυμα (Χρήστης)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Flexible(
-                              child: Container(
-                                padding: const EdgeInsets.all(12.0),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFFE4E1),
-                                  borderRadius: BorderRadius.circular(16.0),
-                                ),
-                                child: const Text(
-                                  'Can you help me with stray animals?',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black,
+                                const SizedBox(width: 10),
+                                Flexible(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12.0),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF5EAFB),
+                                      borderRadius: BorderRadius.circular(16.0),
+                                    ),
+                                    child: Text(
+                                      message.text,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
-                            const SizedBox(width: 10),
-                            Container(
-                              padding: const EdgeInsets.all(8.0),
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.pinkAccent,
-                              ),
-                              child: const Icon(
-                                Icons.person,
-                                size: 20,
-                                color: Colors.white,
-                              ),
+                          );
+                        } else {
+                          // Μήνυμα χρήστη
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Flexible(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(12.0),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFFE4E1),
+                                      borderRadius: BorderRadius.circular(16.0),
+                                    ),
+                                    child: Text(
+                                      message.text,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Container(
+                                  padding: const EdgeInsets.all(8.0),
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.pinkAccent,
+                                  ),
+                                  child: const Icon(
+                                    Icons.person,
+                                    size: 20,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ],
+                          );
+                        }
+                      },
                     ),
                   ),
                 ),
@@ -214,7 +345,8 @@ class BotScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: TextField(
-                          decoration: InputDecoration(
+                          controller: _textController,
+                          decoration: const InputDecoration(
                             hintText: 'Type your message...',
                             border: InputBorder.none,
                           ),
@@ -222,9 +354,7 @@ class BotScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
-                        onTap: () {
-                          // Λογική αποστολής μηνύματος
-                        },
+                        onTap: _sendMessage, // Στέλνουμε το μήνυμα
                         child: Container(
                           padding: const EdgeInsets.all(10.0),
                           decoration: BoxDecoration(
