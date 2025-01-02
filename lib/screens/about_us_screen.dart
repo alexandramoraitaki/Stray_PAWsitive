@@ -88,7 +88,7 @@ class AboutUsScreen extends StatelessWidget {
                   ),
                   child: const Center(
                     child: Text(
-                      'About us',
+                      'About Us',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -102,7 +102,7 @@ class AboutUsScreen extends StatelessWidget {
                 // Πλαίσιο πληροφοριών
                 Container(
                   width: screenWidth * 0.8,
-                  height: screenHeight * 0.4,
+                  height: screenHeight * 0.5,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16.0),
@@ -116,14 +116,24 @@ class AboutUsScreen extends StatelessWidget {
                   ),
                   child: const Padding(
                     padding: EdgeInsets.all(16.0),
-                    child: Text(
-                      'Here you can write some details about your app, the purpose it serves, and any other information you want to share with users.',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.black54,
+                    child: SingleChildScrollView(
+                      child: Text(
+                        '''Καλώς ήρθες στη Stray PAWsitive! 🐾
+
+Είμαστε μια ομάδα φοιτητών με μεγάλη αγάπη για τα ζώα και ένα κοινό όραμα: να δημιουργήσουμε έναν κόσμο όπου κάθε αδέσποτο ζώο θα έχει τη φροντίδα και την αγάπη που του αξίζει! 
+Η ιδέα για την εφαρμογή μας γεννήθηκε από τη βαθιά επιθυμία μας να κάνουμε για αυτά κάτι ουσιαστικό. Βλέποντάς τα να περιπλανιούνται στους δρόμους, αναζητώντας φαγητό, ζεστασιά και λίγη στοργή, νιώσαμε ότι δεν μπορούσαμε να μείνουμε απλοί παρατηρητές. Γνωρίζαμε ότι δεν μπορούσαμε να τα βοηθήσουμε όλα, αλλά είχαμε τη δύναμη να ξεκινήσουμε μια αλλαγή!
+Έτσι, δημιουργήσαμε τη Stray PAWsitive: μια εφαρμογή που ενώνει την κοινότητα των φιλόζωων για έναν κοινό σκοπό – να δώσουμε στα αδέσποτα μια φωνή και μια ευκαιρία για ένα καλύτερο μέλλον!
+
+Ελπίζουμε η Stray PAWsitive να γίνει και για σένα πηγή έμπνευσης, όπως ήταν για εμάς το ταξίδι της δημιουργίας της! Μαζί, μπορούμε να κάνουμε τη διαφορά!
+
+Σ’ ευχαριστούμε που είσαι εδώ. Ας κάνουμε κάτι όμορφο, παρέα!''',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.black54,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
