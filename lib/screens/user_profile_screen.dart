@@ -1,19 +1,56 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'menu_screen.dart';
 
-class UserProfileScreen extends StatelessWidget {
+class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
+
+  @override
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  String username = '...';
+  String email = '...';
+  String firstName = '...';
+  String lastName = '...';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? currentUsername = prefs.getString('current_user');
+
+    List<String> usersData = prefs.getStringList('users') ?? [];
+    for (var userString in usersData) {
+      final Map<String, String> user =
+          Map<String, String>.from(Uri.splitQueryString(userString));
+      if (user['username'] == currentUsername) {
+        setState(() {
+          username = user['username'] ?? 'N/A';
+          email = user['email'] ?? 'N/A';
+          firstName = user['firstName'] ?? 'N/A';
+          lastName = user['lastName'] ?? 'N/A';
+        });
+        break;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5), // Χρώμα φόντου
+      backgroundColor: const Color(0xFFF5F5F5),
       body: Stack(
         children: [
           // Logo πάνω δεξιά
           Positioned(
             top: 20,
-            right: 20,
+            left: 270,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(
@@ -23,7 +60,7 @@ class UserProfileScreen extends StatelessWidget {
               },
               child: Image.asset(
                 'assets/logo/logo.png',
-                height: 80,
+                height: 60,
               ),
             ),
           ),
@@ -81,13 +118,14 @@ class UserProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 30),
 
-              // Πλαίσιο με Username και Email στο κέντρο
+              // Πλαίσιο με πληροφορίες χρήστη
               Center(
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.9,
-                  padding: const EdgeInsets.all(16.0),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16.0),
@@ -101,122 +139,116 @@ class UserProfileScreen extends StatelessWidget {
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(12.0),
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.purple.shade50,
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: const Text(
-                          'Username: ...',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.purple,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 50),
-                      Container(
-                        padding: const EdgeInsets.all(12.0),
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.purple.shade50,
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: const Text(
-                          'Email: ...',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.purple,
-                          ),
-                        ),
-                      ),
+                      _buildInfoRow('First Name', firstName),
+                      const Divider(color: Colors.grey),
+                      _buildInfoRow('Last Name', lastName),
+                      const Divider(color: Colors.grey),
+                      _buildInfoRow('Username', username),
+                      const Divider(color: Colors.grey),
+                      _buildInfoRow('Email', email),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 100),
+              const SizedBox(height: 50),
 
-              // Πλαίσιο με Accomplishments στη μέση της απόστασης από το bot
-              Expanded(
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    padding: const EdgeInsets.symmetric(vertical: 1.0),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5EAFB),
-                      borderRadius: BorderRadius.circular(16.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+              // Πλαίσιο με Accomplishments
+              Container(
+                width: MediaQuery.of(context).size.width * 0.9,
+                padding: const EdgeInsets.all(12.0),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5EAFB),
+                  borderRadius: BorderRadius.circular(16.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Accomplishments',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Εικόνες επιτευγμάτων σε μία σειρά
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        const Text(
-                          'Accomplishments',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple,
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-
-                        // Εικόνες επιτευγμάτων σε μία σειρά
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            for (var achievement in [
-                              'assets/icons/achievement1.png',
-                              'assets/icons/achievement2.png',
-                              'assets/icons/achievement3.png',
-                              'assets/icons/achievement4.png',
-                              'assets/icons/achievement5.png',
-                            ])
-                              Container(
-                                height: 60,
-                                width: 60,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.white,
-                                  border: Border.all(
-                                      color: Colors.pinkAccent, width: 2),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
+                        for (var achievement in [
+                          'assets/icons/achievement1.png',
+                          'assets/icons/achievement2.png',
+                          'assets/icons/achievement3.png',
+                          'assets/icons/achievement4.png',
+                          'assets/icons/achievement5.png',
+                        ])
+                          Container(
+                            height: 50,
+                            width: 50,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                              border: Border.all(
+                                  color: Colors.pinkAccent, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 4),
                                 ),
-                                child: ClipOval(
-                                  child: Image.asset(
-                                    achievement,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: Image.asset(
+                                achievement,
+                                fit: BoxFit.cover,
                               ),
-                          ],
-                        ),
+                            ),
+                          ),
                       ],
                     ),
-                  ),
+                  ],
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.pinkAccent,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 18,
+                color: Colors.black54,
+              ),
+            ),
           ),
         ],
       ),

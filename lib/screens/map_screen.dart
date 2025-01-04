@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'user_profile_screen.dart';
 import 'menu_screen.dart';
 import 'bot_screen.dart';
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final LatLng? currentLocation;
+  const MapScreen({Key? key, this.currentLocation}) : super(key: key);
 
   @override
   State<MapScreen> createState() => _MapScreenState();
@@ -49,11 +51,53 @@ class _MapScreenState extends State<MapScreen> {
   // Μάρκερ που θα εμφανίζονται με βάση τα φίλτρα
   Set<Marker> filteredMarkers = {};
 
+  GoogleMapController? _mapController; // Ελεγκτής του Google Map
+  LatLng? _currentLocation; // Τρέχουσα τοποθεσία χρήστη
+
   @override
   void initState() {
     super.initState();
-    // Αρχικά εμφανίζουμε όλα τα markers
-    filteredMarkers = allMarkers;
+    if (widget.currentLocation != null) {
+      _currentLocation = widget.currentLocation!;
+    } else {
+      _getCurrentLocation(); // Παίρνουμε την τοποθεσία αν δεν έχει δοθεί
+    }
+    filteredMarkers = allMarkers; // Αρχικά εμφανίζουμε όλα τα markers
+  }
+
+  // Μέθοδος για να πάρουμε την τρέχουσα τοποθεσία του χρήστη
+  Future<void> _getCurrentLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception("Location services are disabled.");
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception("Location permissions are denied.");
+        }
+      }
+
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _currentLocation = LatLng(position.latitude, position.longitude);
+      });
+
+      // Μετακινούμε την κάμερα στη θέση του χρήστη
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: LatLng(position.latitude, position.longitude),
+            zoom: 14.0,
+          ),
+        ),
+      );
+    } catch (e) {
+      print("Error getting location: $e");
+    }
   }
 
   // Ενημέρωση markers με βάση τα φίλτρα
@@ -105,22 +149,27 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           // Google Map
           Positioned.fill(
-            child: GoogleMap(
-              initialCameraPosition: const CameraPosition(
-                target: LatLng(37.7749, -122.4194), // Default θέση
-                zoom: 14.0,
-              ),
-              markers:
-                  filteredMarkers, // Χρησιμοποιούμε τα φιλτραρισμένα markers
-              myLocationEnabled: true,
-              zoomControlsEnabled: false,
-            ),
+            child: _currentLocation == null
+                ? const Center(child: CircularProgressIndicator())
+                : GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: _currentLocation!,
+                      zoom: 15,
+                    ),
+                    markers: filteredMarkers,
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: true,
+                    zoomControlsEnabled: true,
+                    onMapCreated: (GoogleMapController controller) {
+                      _mapController = controller;
+                    },
+                  ),
           ),
 
           // Logo πάνω δεξιά
           Positioned(
             top: 20,
-            right: 20,
+            left: 270,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(
@@ -220,14 +269,16 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                   builder: (BuildContext context) {
                     return StatefulBuilder(
-                      builder: (BuildContext context, StateSetter setModalState) {
+                      builder:
+                          (BuildContext context, StateSetter setModalState) {
                         return Container(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   const Text(
                                     'Filters',

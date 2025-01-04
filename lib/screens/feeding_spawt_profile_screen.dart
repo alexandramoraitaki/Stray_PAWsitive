@@ -28,7 +28,8 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
           // 1. Βάλε το SingleChildScrollView πρώτο, ώστε να είναι "κάτω"
           SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 80),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 80),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -121,7 +122,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
           // 2. Τοποθέτησε τα Positioned widgets "πάνω" από το περιεχόμενο
           Positioned(
             top: 20,
-            right: 20,
+            left: 270,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(
@@ -148,7 +149,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
               },
             ),
           ),
-          
+
           Positioned(
             bottom: 20,
             right: 20,

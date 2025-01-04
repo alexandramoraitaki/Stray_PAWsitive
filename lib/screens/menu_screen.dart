@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'user_profile_screen.dart';
 import 'general_info_screen.dart';
 import 'upload_pawsitive_friend_screen.dart';
@@ -8,15 +10,53 @@ import 'bot_screen.dart';
 import 'map_screen.dart';
 import 'logout_screen.dart';
 
-class MenuScreen extends StatelessWidget {
-  const MenuScreen({super.key});
+class MenuScreen extends StatefulWidget {
+  const MenuScreen({Key? key}) : super(key: key);
+
+  @override
+  _MenuScreenState createState() => _MenuScreenState();
+}
+
+class _MenuScreenState extends State<MenuScreen> {
+  LatLng? _currentLocation;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation();
+  }
+
+  Future<void> _getUserLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enable location services')),
+      );
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location permissions are denied')),
+        );
+        return;
+      }
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() {
+      _currentLocation = LatLng(position.latitude, position.longitude);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // Λίστα με τίτλους και αντίστοιχες σελίδες
     final List<Map<String, dynamic>> menuItems = [
       {
         'title': 'Upload a PAWsitive friend!',
@@ -44,17 +84,14 @@ class MenuScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF5F5F5),
       body: Stack(
         children: [
-          // Logo πάνω δεξιά
           Positioned(
             top: 20,
-            right: 20,
+            left: 270,
             child: Image.asset(
               'assets/logo/logo.png',
-              height: 80,
+              height: 60,
             ),
           ),
-
-          // Πίσω βέλος πάνω αριστερά
           Positioned(
             top: 20,
             left: 20,
@@ -68,11 +105,9 @@ class MenuScreen extends StatelessWidget {
               },
             ),
           ),
-
-          // Εικονίδιο Προφίλ πάνω αριστερά (χωρίς να πέφτει πάνω στο πίσω βελάκι)
           Positioned(
             top: 20,
-            left: 70, // Προσαρμόζουμε την απόσταση από την άκρη
+            left: 70,
             child: GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -89,19 +124,16 @@ class MenuScreen extends StatelessWidget {
                 ),
                 child: const Icon(
                   Icons.person,
-                  size: 36,
+                  size: 28,
                   color: Colors.pinkAccent,
                 ),
               ),
             ),
           ),
-
-          // Περιεχόμενο
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Πλαίσιο "Menu"
                 Container(
                   width: screenWidth * 0.8,
                   padding: const EdgeInsets.symmetric(vertical: 16),
@@ -128,10 +160,8 @@ class MenuScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 30),
-
-                // Λίστα κουμπιών
                 Container(
-                  width: screenWidth * 0.7, // Μειώνουμε το πλάτος του πλαισίου
+                  width: screenWidth * 0.7,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -145,82 +175,81 @@ class MenuScreen extends StatelessWidget {
                     ],
                   ),
                   child: Column(
-                    children: menuItems.map(
-                      (item) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFF5EAFB),
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16.0),
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => item['screen']),
-                              );
-                            },
-                            child: Text(
-                              item['title'],
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.purple,
-                              ),
+                    children: menuItems.map((item) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF5EAFB),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.0),
                             ),
                           ),
-                        );
-                      },
-                    ).toList(),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => item['screen'],
+                              ),
+                            );
+                          },
+                          child: Text(
+                            item['title'],
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.purple,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Χάρτης (Clickable)
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const MapScreen()),
-                    );
-                  },
-                  child: Column(
-                    children: [
-                      Image.asset(
-                        'assets/icons/map_placeholder.png',
-                        height: screenHeight * 0.2,
-                        width: screenWidth * 0.8,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Text(
-                            'Map not available',
-                            style: TextStyle(color: Colors.red),
+                Stack(
+                  children: [
+                    SizedBox(
+                      height: screenHeight * 0.2,
+                      width: screenWidth * 0.8,
+                      child: _currentLocation == null
+                          ? const Center(
+                              child: CircularProgressIndicator(),
+                            )
+                          : GoogleMap(
+                              initialCameraPosition: CameraPosition(
+                                target: _currentLocation!,
+                                zoom: 14.0,
+                              ),
+                              zoomControlsEnabled: false,
+                              scrollGesturesEnabled: false,
+                              rotateGesturesEnabled: false,
+                              tiltGesturesEnabled: false,
+                            ),
+                    ),
+                    Positioned.fill(
+                      child: GestureDetector(
+                        onTap: () {
+                          print("Map tapped!");
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const MapScreen(),
+                            ),
                           );
                         },
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Find nearby stray animal friends!',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black54,
+                        child: Container(
+                          color: Colors.transparent,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-
-          // Dog Bot κάτω δεξιά
           Positioned(
             bottom: 20,
             right: 20,

@@ -17,7 +17,7 @@ class AboutUsScreen extends StatelessWidget {
           // Logo πάνω δεξιά
           Positioned(
             top: 20,
-            right: 20,
+            left: 270,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(

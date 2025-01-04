@@ -21,7 +21,8 @@ class ChatMessage {
 
 class _BotScreenState extends State<BotScreen> {
   // Κλειδί OpenAI API
-  final String _openAIApiKey = "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";
+  final String _openAIApiKey =
+      "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";
 
   // Χρησιμοποιούμε αυτόν τον controller για να διαβάσουμε από το TextField
   final TextEditingController _textController = TextEditingController();
@@ -41,7 +42,8 @@ class _BotScreenState extends State<BotScreen> {
     final List<Map<String, String>> apiMessages = [
       {
         "role": "system",
-        "content": "You are a helpful assistant. If the user asks in English, you respond in English. If the user asks in Greek, you respond in Greek."
+        "content":
+            "You are a helpful assistant. If the user asks in English, you respond in English. If the user asks in Greek, you respond in Greek."
       },
       // Μετατρέπουμε τα μηνύματά μας σε user/assistant
       ..._messages.map((message) {
@@ -119,7 +121,7 @@ class _BotScreenState extends State<BotScreen> {
           // Logo πάνω δεξιά
           Positioned(
             top: 20,
-            right: 20,
+            left: 270,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(

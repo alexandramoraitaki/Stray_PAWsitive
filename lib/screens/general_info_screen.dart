@@ -16,7 +16,7 @@ class GeneralInfoScreen extends StatelessWidget {
           // Logo πάνω δεξιά
           Positioned(
             top: 20,
-            right: 20,
+            left: 270,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(
@@ -26,7 +26,7 @@ class GeneralInfoScreen extends StatelessWidget {
               },
               child: Image.asset(
                 'assets/logo/logo.png',
-                height: 80,
+                height: 60,
               ),
             ),
           ),
@@ -53,8 +53,8 @@ class GeneralInfoScreen extends StatelessWidget {
 
                   // Τίτλος "General Info"
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFFE4E1),
                       borderRadius: BorderRadius.circular(16.0),
