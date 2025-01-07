@@ -1,25 +1,31 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'map_screen.dart';
+import 'package:stray_pawsitive/screens/upload_feeding_spawt_screen.dart';
 import 'menu_screen.dart';
 import 'user_profile_screen.dart';
 import 'bot_screen.dart';
+import 'package:intl/intl.dart';
 
 class FeedingSpawtProfileScreen extends StatelessWidget {
   final File image; // Εικόνα που περνιέται από την προηγούμενη οθόνη
   final String location; // Τοποθεσία που περνιέται από την προηγούμενη οθόνη
   final String date;
+  final String description; 
 
   const FeedingSpawtProfileScreen({
     super.key,
     required this.image,
     required this.location,
     required this.date,
+    required this.description,
   });
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final TextEditingController descriptionController = TextEditingController();
+    final formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.parse(date));
+
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -90,6 +96,17 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   _buildProfileField('Location: $location'),
                   const SizedBox(height: 20),
 
+                  // Ημερομηνία
+                  _buildProfileField('Date: $formattedDate'),
+
+                  const SizedBox(height: 30),
+
+                  // Περιγραφή
+                  _buildProfileField('Description: $description'),
+
+                  const SizedBox(height: 30),
+
+
                   // Στατική Περιοχή Σχολίων
                   Container(
                     width: screenWidth * 0.9,
@@ -119,6 +136,35 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
             ),
           ),
 
+
+            
+              // Εικονίδιο Προφίλ πάνω αριστερά
+              Positioned(
+                top: 20,
+                left: 70,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const UserProfileScreen()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.pinkAccent, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      size: 28,
+                      color: Colors.pinkAccent,
+                    ),
+                  ),
+                ),
+              ),
+
           // 2. Τοποθέτησε τα Positioned widgets "πάνω" από το περιεχόμενο
           Positioned(
             top: 20,
@@ -144,14 +190,14 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const MapScreen()),
+                  MaterialPageRoute(builder: (context) => const UploadFeedingSpawtScreen()),
                 );
               },
             ),
           ),
 
           Positioned(
-            bottom: 20,
+            bottom: 40,
             right: 20,
             child: GestureDetector(
               onTap: () {

@@ -11,6 +11,10 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:geocoding/geocoding.dart';
 
+import 'package:intl/intl.dart';
+
+
+
 class UploadFeedingSpawtScreen extends StatefulWidget {
   const UploadFeedingSpawtScreen({super.key});
 
@@ -23,6 +27,9 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   File? image;
   String? location;
   DateTime? selectedDate;
+ final TextEditingController descriptionController = TextEditingController();
+
+
 
   // Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
   Future<void> _getAddressFromCoordinates(LatLng position) async {
@@ -45,6 +52,9 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
     }
   }
 
+ 
+
+
   void _handleGoogleMapsSelection(Uri uri) {
     if (uri.scheme == 'straypaws') {
       // Διαβάζουμε τη διεύθυνση από το deeplink
@@ -62,6 +72,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    // TextEditingController για την περιγραφή
+final TextEditingController descriptionController = TextEditingController();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -196,6 +208,13 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                                     content: Text("Please select a date!")),
                               );
                             } else {
+                                  // Συνδυασμός ημερομηνίας και ώρας
+    final selectedDateTime = DateTime(
+      selectedDate!.year,
+      selectedDate!.month,
+      selectedDate!.day,
+  
+    );
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -204,6 +223,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                                     image: image!,
                                     location: location!,
                                     date: selectedDate.toString(),
+                                    description: descriptionController.text,
                                   ),
                                 ),
                               );
@@ -378,6 +398,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
 
                     const SizedBox(height: 20),
 
+                  
+
                     // Πεδίο "Description"
                     Container(
                       width: screenWidth * 0.8,
@@ -393,7 +415,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                           ),
                         ],
                       ),
-                      child: const TextField(
+                      child:  TextField(
+                         controller: descriptionController,
                         maxLines: 5,
                         decoration: InputDecoration(
                           hintText: 'Description',
