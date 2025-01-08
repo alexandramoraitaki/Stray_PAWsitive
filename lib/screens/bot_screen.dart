@@ -121,7 +121,7 @@ class _BotScreenState extends State<BotScreen> {
           // Logo πάνω δεξιά
           Positioned(
             top: 20,
-            left: 270,
+            left: 310,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(

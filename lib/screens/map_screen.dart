@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'user_profile_screen.dart';
 import 'menu_screen.dart';
 import 'bot_screen.dart';
@@ -53,6 +54,8 @@ class _MapScreenState extends State<MapScreen> {
 
   GoogleMapController? _mapController; // Ελεγκτής του Google Map
   LatLng? _currentLocation; // Τρέχουσα τοποθεσία χρήστη
+  Marker? _selectedMarker; // Επιλεγμένο marker
+  String? _selectedAddress;
 
   @override
   void initState() {
@@ -97,6 +100,77 @@ class _MapScreenState extends State<MapScreen> {
       );
     } catch (e) {
       print("Error getting location: $e");
+    }
+  }
+
+  Future<void> _setMarkerAndAddress(LatLng position) async {
+    try {
+      // Λήψη διεύθυνσης από συντεταγμένες
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      String address = placemarks.isNotEmpty
+          ? '${placemarks.first.street}, ${placemarks.first.locality}'
+          : 'Unknown Address';
+
+      setState(() {
+        _selectedMarker = Marker(
+          markerId: MarkerId('selectedLocation'),
+          position: position,
+          infoWindow: InfoWindow(title: address),
+        );
+        _selectedAddress = address;
+      });
+
+      _mapController?.animateCamera(CameraUpdate.newLatLng(position));
+    } catch (e) {
+      print("Error fetching address: $e");
+      setState(() {
+        _selectedAddress = 'Address not found';
+      });
+    }
+  }
+
+  // Μέθοδος αναζήτησης τοποθεσίας
+  Future<void> _searchLocation(String query) async {
+    try {
+      // Μετατροπή κειμένου σε συντεταγμένες
+      List<Location> locations = await locationFromAddress(query);
+      if (locations.isNotEmpty) {
+        Location location = locations.first;
+
+        // Δημιουργία νέου marker για την τοποθεσία
+        Marker newMarker = Marker(
+          markerId: MarkerId(query), // Χρησιμοποίησε το query ως μοναδικό ID
+          position: LatLng(location.latitude, location.longitude),
+          infoWindow: InfoWindow(title: query),
+        );
+
+        setState(() {
+          // Προσθήκη του νέου marker στα markers
+          filteredMarkers = {newMarker};
+        });
+
+        // Μετακίνηση της κάμερας στον νέο προορισμό
+        _mapController?.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(location.latitude, location.longitude),
+              zoom: 17.0,
+            ),
+          ),
+        );
+      } else {
+        // Αν δεν βρεθεί τοποθεσία, εμφάνιση μηνύματος
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location not found')),
+        );
+      }
+    } catch (e) {
+      print('Error searching location: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error searching location')),
+      );
     }
   }
 
@@ -156,15 +230,64 @@ class _MapScreenState extends State<MapScreen> {
                       target: _currentLocation!,
                       zoom: 15,
                     ),
-                    markers: filteredMarkers,
                     myLocationEnabled: true,
                     myLocationButtonEnabled: true,
                     zoomControlsEnabled: true,
                     onMapCreated: (GoogleMapController controller) {
                       _mapController = controller;
                     },
+                    markers: {
+                      ...filteredMarkers, // Περιλαμβάνει όλα τα markers
+                      if (_selectedMarker != null)
+                        _selectedMarker!, // Προσθέτει το επιλεγμένο marker αν υπάρχει
+                    },
+                    onTap: (LatLng position) {
+                      setState(() {
+                        Marker newMarker = Marker(
+                          markerId: MarkerId(position.toString()),
+                          position: position,
+                          infoWindow: InfoWindow(title: "Selected Location"),
+                        );
+
+                        // Ενημερώνει τη λίστα των markers
+                        filteredMarkers = {newMarker};
+                        _selectedMarker =
+                            newMarker; // Ενημερώνει το _selectedMarker
+                      });
+
+                      // Εύρεση διεύθυνσης για το νέο marker
+                      _setMarkerAndAddress(position);
+                    },
                   ),
           ),
+
+          if (_selectedAddress != null)
+            Positioned(
+              bottom: 20,
+              left: 20,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  _selectedAddress!,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
 
           // Logo πάνω δεξιά
           Positioned(
@@ -250,6 +373,44 @@ class _MapScreenState extends State<MapScreen> {
                     color: Colors.black,
                   ),
                 ),
+              ),
+            ),
+          ),
+
+          // Μπάρα Αναζήτησης
+          Positioned(
+            top: 150,
+            left: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      decoration: const InputDecoration(
+                        hintText: 'Search location',
+                        border: InputBorder.none,
+                      ),
+                      onSubmitted: (query) async {
+                        await _searchLocation(query);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -359,7 +520,7 @@ class _MapScreenState extends State<MapScreen> {
           // Dog Bot κάτω δεξιά
           Positioned(
             bottom: 20,
-            right: 20,
+            left: 290,
             child: GestureDetector(
               onTap: () {
                 Navigator.push(

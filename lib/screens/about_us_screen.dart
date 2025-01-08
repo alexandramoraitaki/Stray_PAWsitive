@@ -17,7 +17,7 @@ class AboutUsScreen extends StatelessWidget {
           // Logo πάνω δεξιά
           Positioned(
             top: 20,
-            left: 270,
+            left: 310,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(
@@ -142,7 +142,7 @@ class AboutUsScreen extends StatelessWidget {
           // Dog Bot κάτω δεξιά
           Positioned(
             bottom: 20,
-            right: 20,
+            left: 310,
             child: GestureDetector(
               onTap: () {
                 Navigator.push(

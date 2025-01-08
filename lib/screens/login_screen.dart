@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
           // Logo πάνω δεξιά
           Positioned(
             top: 20,
-            left: 270,
+            left: 310,
             child: Image.asset(
               'assets/logo/logo.png',
               height: 60,

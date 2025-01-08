@@ -10,10 +10,11 @@ import 'google_maps_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:geocoding/geocoding.dart';
-
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firestore_service.dart';
 import 'package:intl/intl.dart';
-
-
+import 'package:firebase_storage/firebase_storage.dart';
 
 class UploadFeedingSpawtScreen extends StatefulWidget {
   const UploadFeedingSpawtScreen({super.key});
@@ -27,9 +28,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   File? image;
   String? location;
   DateTime? selectedDate;
- final TextEditingController descriptionController = TextEditingController();
-
-
+  final TextEditingController descriptionController = TextEditingController();
+  String? _documentId;
 
   // Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
   Future<void> _getAddressFromCoordinates(LatLng position) async {
@@ -52,8 +52,52 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
     }
   }
 
- 
+  /// Μέθοδος αποθήκευσης δεδομένων στη Firestore
+  Future<void> _saveToFirestore() async {
+    try {
+      if (image == null || location == null || selectedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please fill in all the fields")),
+        );
+        return;
+      }
 
+      // Ανεβάζουμε την εικόνα στο Firebase Storage
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('feeding_spawts/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final uploadTask = await storageRef.putFile(image!);
+      final imageUrl = await storageRef.getDownloadURL();
+
+      // Δημιουργία αναφοράς και αποθήκευση στο Firestore
+      final docRef =
+          FirebaseFirestore.instance.collection('feeding_spawts').doc();
+      print('Document ID: ${docRef.id}');
+
+      await docRef.set({
+        'image_url': imageUrl,
+        'location': location,
+        'date': selectedDate!.toIso8601String(),
+        'description': descriptionController.text,
+        'created_at': FieldValue.serverTimestamp(),
+      });
+
+      // Αποθήκευση του documentId
+      setState(() {
+        _documentId =
+            docRef.id; // Βεβαιώσου ότι η _documentId ενημερώνεται σωστά
+      });
+      print('Updated Document ID: $_documentId');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Feeding sPAWt uploaded successfully!")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to upload feeding spot: $e")),
+      );
+    }
+  }
 
   void _handleGoogleMapsSelection(Uri uri) {
     if (uri.scheme == 'straypaws') {
@@ -73,7 +117,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     // TextEditingController για την περιγραφή
-final TextEditingController descriptionController = TextEditingController();
+    final TextEditingController descriptionController = TextEditingController();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -84,7 +128,7 @@ final TextEditingController descriptionController = TextEditingController();
               // Logo πάνω δεξιά
               Positioned(
                 top: 20,
-                left: 270,
+                left: 310,
                 child: GestureDetector(
                   onTap: () {
                     Navigator.pushReplacement(
@@ -95,7 +139,7 @@ final TextEditingController descriptionController = TextEditingController();
                   },
                   child: Image.asset(
                     'assets/logo/logo.png',
-                    height: 80,
+                    height: 60,
                   ),
                 ),
               ),
@@ -191,39 +235,44 @@ final TextEditingController descriptionController = TextEditingController();
                         ),
                         IconButton(
                           icon: const Icon(Icons.check, color: Colors.green),
-                          onPressed: () {
+                          onPressed: () async {
+                            await _saveToFirestore();
                             if (image == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                     content: Text("Please select an image!")),
                               );
-                            } else if (location == null) {
+                              return;
+                            }
+                            if (location == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                     content: Text("Please select a location!")),
                               );
-                            } else if (selectedDate == null) {
+                              return;
+                            }
+                            if (selectedDate == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                     content: Text("Please select a date!")),
                               );
-                            } else {
-                                  // Συνδυασμός ημερομηνίας και ώρας
-    final selectedDateTime = DateTime(
-      selectedDate!.year,
-      selectedDate!.month,
-      selectedDate!.day,
-  
-    );
+                              return;
+                            }
+
+                            // Συνδυασμός ημερομηνίας και ώρας
+                            final selectedDateTime = DateTime(
+                              selectedDate!.year,
+                              selectedDate!.month,
+                              selectedDate!.day,
+                            );
+
+                            if (_documentId != null) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
                                       FeedingSpawtProfileScreen(
-                                    image: image!,
-                                    location: location!,
-                                    date: selectedDate.toString(),
-                                    description: descriptionController.text,
+                                    documentId: _documentId!,
                                   ),
                                 ),
                               );
@@ -398,8 +447,6 @@ final TextEditingController descriptionController = TextEditingController();
 
                     const SizedBox(height: 20),
 
-                  
-
                     // Πεδίο "Description"
                     Container(
                       width: screenWidth * 0.8,
@@ -415,8 +462,8 @@ final TextEditingController descriptionController = TextEditingController();
                           ),
                         ],
                       ),
-                      child:  TextField(
-                         controller: descriptionController,
+                      child: TextField(
+                        controller: descriptionController,
                         maxLines: 5,
                         decoration: InputDecoration(
                           hintText: 'Description',

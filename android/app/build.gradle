@@ -1,16 +1,14 @@
 plugins {
     id "com.android.application"
     id "kotlin-android"
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services" // Plugin για Google Services
 }
 
 android {
     namespace = "com.example.stray_pawsitive"
-    //compileSdk = flutter.compileSdkVersion
     compileSdk = 34
     buildToolsVersion = "33.0.2"
-    //ndkVersion = flutter.ndkVersion
     ndkVersion = "25.1.8937393"
 
     compileOptions {
@@ -23,24 +21,35 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.stray_pawsitive"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 21
-        //targetSdk = flutter.targetSdkVersion
+        minSdk = 23
         targetSdk = 34
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode = 1 // Ενημέρωσε το αν έχεις διαφορετικό version code
+        versionName = "1.0" // Ενημέρωσε το αν έχεις διαφορετικό version name
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig = signingConfigs.debug // Χρησιμοποίησε δικό σου signing config για release builds
         }
     }
+}
+
+dependencies {
+    // Import the Firebase BoM
+    implementation platform('com.google.firebase:firebase-bom:33.7.0')
+
+    // Firebase Analytics
+    implementation 'com.google.firebase:firebase-analytics'
+
+    // Firebase Firestore
+    implementation 'com.google.firebase:firebase-firestore'
+
+    // Firebase Authentication
+    implementation 'com.google.firebase:firebase-auth'
+
+    // Firebase Storage
+    implementation 'com.google.firebase:firebase-storage'
 }
 
 flutter {

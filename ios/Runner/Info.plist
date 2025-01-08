@@ -49,5 +49,7 @@
 	<string>We need your location to show it on the map</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
 </dict>
 </plist>

@@ -86,7 +86,7 @@ class _MenuScreenState extends State<MenuScreen> {
         children: [
           Positioned(
             top: 20,
-            left: 270,
+            left: 310,
             child: Image.asset(
               'assets/logo/logo.png',
               height: 60,

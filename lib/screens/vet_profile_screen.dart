@@ -16,7 +16,7 @@ class VetProfileScreen extends StatelessWidget {
           // Logo πάνω δεξιά
           Positioned(
             top: 20,
-            left: 270,
+            left: 310,
             child: GestureDetector(
               onTap: () {
                 Navigator.pushReplacement(
@@ -26,7 +26,7 @@ class VetProfileScreen extends StatelessWidget {
               },
               child: Image.asset(
                 'assets/logo/logo.png',
-                height: 80,
+                height: 60,
               ),
             ),
           ),

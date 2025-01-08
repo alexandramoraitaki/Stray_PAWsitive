@@ -7,6 +7,9 @@ import 'package:geolocator/geolocator.dart';
 import 'google_maps_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firestore_service.dart';
 
 class UploadPawsitiveFriendScreen extends StatefulWidget {
   const UploadPawsitiveFriendScreen({super.key});
@@ -43,6 +46,39 @@ class _UploadPawsitiveFriendScreenState
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Could not fetch address: $e")),
+      );
+    }
+  }
+
+  Future<void> _saveToFirestore() async {
+    try {
+      final docRef =
+          FirebaseFirestore.instance.collection('pawsitive_friends').doc();
+
+      // Δημιουργούμε ένα αντικείμενο με τα δεδομένα
+      Map<String, dynamic> friendData = {
+        'image_path': image?.path ?? '',
+        'location': location ?? '',
+        'date': selectedDate != null ? selectedDate!.toIso8601String() : '',
+        'animal': selectedAnimal ?? '',
+        'gender': selectedGender ?? '',
+        'size': selectedSize ?? '',
+        'friendliness': selectedFriendliness ?? '',
+        'description': '', // Πρόσθεσε το πεδίο περιγραφής αν υπάρχει
+        'timestamp': FieldValue.serverTimestamp(), // Χρήσιμο για ταξινόμηση
+      };
+
+      // Αποθήκευση στη βάση
+      await docRef.set(friendData);
+
+      // Ειδοποίηση επιτυχίας
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Pawsitive Friend uploaded successfully!")),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to upload data: $e")),
       );
     }
   }
@@ -425,13 +461,22 @@ class _UploadPawsitiveFriendScreenState
             right: screenWidth * 0.1,
             child: IconButton(
               icon: const Icon(Icons.check, color: Colors.green),
-              onPressed: () {
+              onPressed: () async {
                 if (image == null) {
                   // Ειδοποίηση ότι δεν έχει επιλεγεί εικόνα
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Please select an image!")),
                   );
+                } else if (location == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please select a location!")),
+                  );
+                } else if (selectedDate == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please select a date!")),
+                  );
                 } else {
+                  await _saveToFirestore();
                   // Προχωράει στην επόμενη σελίδα
                   Navigator.push(
                     context,
