@@ -1,5 +1,24 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Έκδοση Android Gradle Plugin
+        classpath 'com.android.tools.build:gradle:8.1.0'
+
+        // Έκδοση Google Services Plugin 
+        // (συνήθως πιο σύγχρονη από την 4.4.2 – π.χ. 4.3.15)
+        classpath 'com.google.gms:google-services:4.3.15'
+    }
+}
+
+
+
+
+
 plugins {
-    id("com.google.gms.google-services") version "4.4.2" apply false
+    id("com.google.gms.google-services") version "4.3.15" apply false
 }
 
 allprojects {

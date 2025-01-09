@@ -10,10 +10,7 @@ import 'google_maps_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'firestore_service.dart';
-import 'package:intl/intl.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class UploadFeedingSpawtScreen extends StatefulWidget {
@@ -30,6 +27,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   DateTime? selectedDate;
   final TextEditingController descriptionController = TextEditingController();
   String? _documentId;
+  String imageUrl = '';  // default κενή τιμή
+
 
   // Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
   Future<void> _getAddressFromCoordinates(LatLng position) async {
@@ -62,12 +61,34 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
         return;
       }
 
+       print("Uploading file: ${image?.path}");
+
+       
+
       // Ανεβάζουμε την εικόνα στο Firebase Storage
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('feeding_spawts/${DateTime.now().millisecondsSinceEpoch}.jpg');
-      final uploadTask = await storageRef.putFile(image!);
-      final imageUrl = await storageRef.getDownloadURL();
+      //await storageRef.putFile(image!);
+     try {
+  final uploadTask = storageRef.putFile(
+    image!,
+    SettableMetadata(
+      contentType: 'image/jpeg',
+    ),
+  );
+
+  // Περιμένουμε να ολοκληρωθεί η μεταφόρτωση
+  final taskSnapshot = await uploadTask;
+  print("File uploaded: ${taskSnapshot.bytesTransferred} bytes");
+
+      print("File uploaded!");
+      //final 
+      imageUrl = await storageRef.getDownloadURL();
+      print("Download URL: $imageUrl");
+      } catch (e) {
+  print("Upload failed: $e");
+}
 
       // Δημιουργία αναφοράς και αποθήκευση στο Firestore
       final docRef =
@@ -87,12 +108,15 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
         _documentId =
             docRef.id; // Βεβαιώσου ότι η _documentId ενημερώνεται σωστά
       });
-      print('Updated Document ID: $_documentId');
+      print("Document created successfully with ID: $_documentId");
+
+      
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Feeding sPAWt uploaded successfully!")),
       );
     } catch (e) {
+      print("Error uploading image: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to upload feeding spot: $e")),
       );
@@ -117,7 +141,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     // TextEditingController για την περιγραφή
-    final TextEditingController descriptionController = TextEditingController();
+    //final TextEditingController descriptionController = TextEditingController();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -236,7 +260,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                         IconButton(
                           icon: const Icon(Icons.check, color: Colors.green),
                           onPressed: () async {
-                            await _saveToFirestore();
+                            //await _saveToFirestore();
                             if (image == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -260,13 +284,28 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                             }
 
                             // Συνδυασμός ημερομηνίας και ώρας
-                            final selectedDateTime = DateTime(
-                              selectedDate!.year,
-                              selectedDate!.month,
-                              selectedDate!.day,
-                            );
+                            //final selectedDateTime = DateTime(
+                             // selectedDate!.year,
+                              //selectedDate!.month,
+                             // selectedDate!.day,
+                            //);
 
-                            if (_documentId != null) {
+                              // 2. Κάνουμε την αποθήκευση στο Firestore (και Storage)
+                            print("Before saving to Firestore");
+                            await _saveToFirestore();
+                            print("After saving to Firestore");
+
+
+                            // 3. Ελέγχουμε αν όντως έχουμε documentId
+                            if (_documentId == null) {
+                                    // Εμφανίζουμε μήνυμα σφάλματος αν δεν δημιουργήθηκε documentId
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to save data. Please try again.")),
+      );
+                              return;
+                            }
+
+                            //if (_documentId != null) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -276,7 +315,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                                   ),
                                 ),
                               );
-                            }
+                            //}
                           },
                         ),
                       ],
@@ -530,9 +569,12 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   Future<void> _pickImage(ImageSource source) async {
     final pickedFile = await ImagePicker().pickImage(source: source);
     if (pickedFile != null) {
+      print("Picked file path: ${pickedFile.path}");
       setState(() {
         image = File(pickedFile.path);
       });
-    }
+    } else {
+    print("No image was picked!");
+  }
   }
 }

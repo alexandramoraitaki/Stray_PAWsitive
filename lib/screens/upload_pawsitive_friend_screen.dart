@@ -9,7 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'firestore_service.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class UploadPawsitiveFriendScreen extends StatefulWidget {
   const UploadPawsitiveFriendScreen({super.key});
@@ -27,7 +27,11 @@ class _UploadPawsitiveFriendScreenState
   String? selectedAnimal; // "DOG" ή "CAT"
   String? selectedGender; // Για Male/Female
   String? selectedSize; // Για Small/Medium/Large
-  String? selectedFriendliness; // Για Friendly/Not Friendly
+  String? selectedFriendliness;// Για Friendly/Not Friendly
+  String imageUrl = '';
+  String? _documentId; // Δημιουργούμε τη μεταβλητή
+  final TextEditingController descriptionController = TextEditingController();
+
 
   // Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
   Future<void> _getAddressFromCoordinates(LatLng position) async {
@@ -51,25 +55,65 @@ class _UploadPawsitiveFriendScreenState
   }
 
   Future<void> _saveToFirestore() async {
+      try {
+    // 1. Έλεγχος κενών πεδίων
+    if (image == null || location == null || selectedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please fill in all the fields")),
+        );
+        return;
+      }
+
+    print("Uploading file: ${image?.path}");
+
+    // 2. Ανεβάζουμε την εικόνα στο Firebase Storage
+    final storageRef = FirebaseStorage.instance
+        .ref()
+        .child('pawsitive_friends/${DateTime.now().millisecondsSinceEpoch}.jpg');
+
+
+
+
     try {
+            final uploadTask = storageRef.putFile(
+        image!,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+
+      final taskSnapshot = await uploadTask;
+      print("File uploaded: ${taskSnapshot.bytesTransferred} bytes");
+
+      // 3. Παίρνουμε το download URL
+      imageUrl = await storageRef.getDownloadURL();
+      print("Download URL: $imageUrl");
+    } catch (e) {
+      print("Upload failed: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Image upload failed: $e")),
+      );
+      return; // Σταματάμε, δεν προχωράμε σε Firestore
+    }
       final docRef =
           FirebaseFirestore.instance.collection('pawsitive_friends').doc();
 
-      // Δημιουργούμε ένα αντικείμενο με τα δεδομένα
-      Map<String, dynamic> friendData = {
-        'image_path': image?.path ?? '',
-        'location': location ?? '',
-        'date': selectedDate != null ? selectedDate!.toIso8601String() : '',
+     await docRef.set({
+        'image_url': imageUrl,
+        'location': location,
+        'date': selectedDate!.toIso8601String(),
+        'description': descriptionController.text,
+        'created_at': FieldValue.serverTimestamp(),
         'animal': selectedAnimal ?? '',
         'gender': selectedGender ?? '',
         'size': selectedSize ?? '',
         'friendliness': selectedFriendliness ?? '',
-        'description': '', // Πρόσθεσε το πεδίο περιγραφής αν υπάρχει
-        'timestamp': FieldValue.serverTimestamp(), // Χρήσιμο για ταξινόμηση
-      };
 
-      // Αποθήκευση στη βάση
-      await docRef.set(friendData);
+      });
+
+       // Αποθήκευση του documentId
+      setState(() {
+        _documentId =
+            docRef.id; // Βεβαιώσου ότι η _documentId ενημερώνεται σωστά
+      });
 
       // Ειδοποίηση επιτυχίας
       ScaffoldMessenger.of(context).showSnackBar(
@@ -467,22 +511,34 @@ class _UploadPawsitiveFriendScreenState
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Please select an image!")),
                   );
+                  return;
                 } else if (location == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Please select a location!")),
                   );
+                  return;
                 } else if (selectedDate == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Please select a date!")),
                   );
+                  return;
                 } else {
                   await _saveToFirestore();
+                  // 3. Ελέγχουμε αν όντως έχουμε documentId
+                            if (_documentId == null) {
+                                    // Εμφανίζουμε μήνυμα σφάλματος αν δεν δημιουργήθηκε documentId
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text("Failed to save data. Please try again.")),
+                                    );
+                              return;
+                            }
                   // Προχωράει στην επόμενη σελίδα
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          const PawsitiveFriendProfileScreen(),
+                          PawsitiveFriendProfileScreen(documentId: _documentId!,
+                          ),
                     ),
                   );
                 }
