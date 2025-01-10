@@ -31,6 +31,8 @@ class _UploadPawsitiveFriendScreenState
   String imageUrl = '';
   String? _documentId; // Δημιουργούμε τη μεταβλητή
   final TextEditingController descriptionController = TextEditingController();
+  double? selectedLatitude;
+  double? selectedLongitude;
 
 
   // Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
@@ -97,8 +99,11 @@ class _UploadPawsitiveFriendScreenState
           FirebaseFirestore.instance.collection('pawsitive_friends').doc();
 
      await docRef.set({
+        'type': selectedAnimal,
         'image_url': imageUrl,
         'location': location,
+        'latitude': selectedLatitude,
+        'longitude': selectedLongitude,
         'date': selectedDate!.toIso8601String(),
         'description': descriptionController.text,
         'created_at': FieldValue.serverTimestamp(),
@@ -273,6 +278,10 @@ class _UploadPawsitiveFriendScreenState
 
                       // Αν ο χρήστης επιλέξει τοποθεσία, ενημερώνεται το πεδίο location
                       if (selectedLocation != null) {
+                            setState((){
+                            selectedLatitude = selectedLocation.latitude;
+                            selectedLongitude = selectedLocation.longitude;
+                          });
                         await _getAddressFromCoordinates(selectedLocation);
                       }
                     },

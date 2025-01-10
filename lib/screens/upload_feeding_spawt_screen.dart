@@ -28,6 +28,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   final TextEditingController descriptionController = TextEditingController();
   String? _documentId;
   String imageUrl = '';  // default κενή τιμή
+  double? selectedLatitude;
+  double? selectedLongitude;
 
 
   // Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
@@ -96,8 +98,11 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
       print('Document ID: ${docRef.id}');
 
       await docRef.set({
+        'type': 'FeedingSpot',
         'image_url': imageUrl,
         'location': location,
+        'latitude': selectedLatitude,
+        'longitude': selectedLongitude,
         'date': selectedDate!.toIso8601String(),
         'description': descriptionController.text,
         'created_at': FieldValue.serverTimestamp(),
@@ -412,6 +417,10 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
 
                         // Αν ο χρήστης επιλέξει τοποθεσία, ενημερώνεται το πεδίο location
                         if (selectedLocation != null) {
+                          setState((){
+                            selectedLatitude = selectedLocation.latitude;
+                            selectedLongitude = selectedLocation.longitude;
+                          });
                           await _getAddressFromCoordinates(selectedLocation);
                         }
                       },

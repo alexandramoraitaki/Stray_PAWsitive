@@ -3,11 +3,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'user_profile_screen.dart';
+import 'feeding_spawt_profile_screen.dart';
 import 'menu_screen.dart';
 import 'bot_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'pawsitive_friend_profile_screen.dart';
 
 class MapScreen extends StatefulWidget {
   final LatLng? currentLocation;
+
   const MapScreen({Key? key, this.currentLocation}) : super(key: key);
 
   @override
@@ -30,24 +35,7 @@ class _MapScreenState extends State<MapScreen> {
     'NOT FRIENDLY': false,
   };
 
-  // Όλα τα markers του χάρτη
-  final Set<Marker> allMarkers = {
-    const Marker(
-      markerId: MarkerId('dog1'),
-      position: LatLng(37.7749, -122.4194),
-      infoWindow: InfoWindow(title: 'Dog Spot 1'),
-    ),
-    const Marker(
-      markerId: MarkerId('cat1'),
-      position: LatLng(37.7750, -122.4180),
-      infoWindow: InfoWindow(title: 'Cat Spot 1'),
-    ),
-    const Marker(
-      markerId: MarkerId('food1'),
-      position: LatLng(37.7760, -122.4170),
-      infoWindow: InfoWindow(title: 'Food Spot 1'),
-    ),
-  };
+Set<Marker> allMarkers = {};
 
   // Μάρκερ που θα εμφανίζονται με βάση τα φίλτρα
   Set<Marker> filteredMarkers = {};
@@ -56,6 +44,10 @@ class _MapScreenState extends State<MapScreen> {
   LatLng? _currentLocation; // Τρέχουσα τοποθεσία χρήστη
   Marker? _selectedMarker; // Επιλεγμένο marker
   String? _selectedAddress;
+  late BitmapDescriptor foodIcon;
+  late BitmapDescriptor dogIcon;
+  late BitmapDescriptor catIcon;
+
 
   @override
   void initState() {
@@ -65,8 +57,121 @@ class _MapScreenState extends State<MapScreen> {
     } else {
       _getCurrentLocation(); // Παίρνουμε την τοποθεσία αν δεν έχει δοθεί
     }
-    filteredMarkers = allMarkers; // Αρχικά εμφανίζουμε όλα τα markers
+      _loadMarkersFromFirestore();
   }
+
+Future<void> _loadMarkersFromFirestore() async {
+  final firestore = FirebaseFirestore.instance;
+
+  try {
+     foodIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/icons/LocationFood.png',
+     );
+      dogIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(size: Size(48, 48)),
+      'assets/icons/dog_marker.png',
+      );
+      catIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(size: Size(48, 48)),
+      'assets/icons/cat_marker.png',
+     );
+
+  
+
+    // Φέρνουμε όλα τα documents από τη συλλογή `feeding_spawts`
+final feedingSpawtsSnapshot = await firestore.collection('feeding_spawts').get();
+
+// Φέρνουμε όλα τα documents από τη συλλογή `pawsitive_friends`
+final pawsitiveFriendsSnapshot = await firestore.collection('pawsitive_friends').get();
+
+
+    Set<Marker> markers = {};
+
+    for (var doc in feedingSpawtsSnapshot.docs) {
+      final data = doc.data();
+      final latitude = data['latitude'];
+      final longitude = data['longitude'];
+      final documentId = doc.id;
+      //final type = data['type'];
+
+      print('Document ID: $documentId, Latitude: $latitude, Longitude: $longitude'); // Debug εκτύπωση
+      
+        if (latitude != null && longitude != null) {
+    markers.add(
+      Marker(
+        markerId: MarkerId(documentId),
+        position: LatLng(latitude, longitude),
+        icon: foodIcon, // Αντίστοιχο εικονίδιο για feeding spawts
+        infoWindow: InfoWindow(title: data['description'] ?? 'Feeding Spot'),
+      ),
+    );
+  }
+}
+      // Επεξεργασία των pawsitive friends
+for (var doc in pawsitiveFriendsSnapshot.docs) {
+  final data = doc.data();
+  final latitude = data['latitude'];
+  final longitude = data['longitude'];
+  final documentId = doc.id;
+
+  if (latitude != null && longitude != null) {
+    BitmapDescriptor icon;
+    Widget Function(String documentId) screen;
+    switch (data['type']) {
+      case 'Dog':
+        icon = dogIcon;
+        screen = (documentId) => PawsitiveFriendProfileScreen(documentId: documentId);
+        break;
+      case 'Cat':
+        icon = catIcon;
+        screen = (documentId) => PawsitiveFriendProfileScreen(documentId: documentId);
+        break;
+      default:
+        continue;
+    }
+
+
+
+
+
+
+
+
+
+
+        // Δημιουργία marker
+        Marker marker = Marker(
+          markerId: MarkerId(documentId),
+          position: LatLng(latitude, longitude),
+          icon: icon, // Χρήση του προσαρμοσμένου εικονιδίου
+          infoWindow: InfoWindow(
+            title: data['description'] ?? 'Marker',
+            snippet: data['location'],
+            onTap: () {
+              // Άνοιγμα της αντίστοιχης σελίδας με βάση το documentId
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => screen (documentId),
+                ),
+              );
+            },
+          ),
+        );
+        markers.add(marker);
+      }
+    }
+
+    setState(() {
+      filteredMarkers = markers; // Προσθήκη markers στον χάρτη
+    });
+    print('Markers loaded: ${filteredMarkers.length}'); // Ενημέρωση του αριθμού των markers
+  } catch (e) {
+    print('Error loading markers: $e');
+  }
+}
+
 
   // Μέθοδος για να πάρουμε την τρέχουσα τοποθεσία του χρήστη
   Future<void> _getCurrentLocation() async {
@@ -174,6 +279,10 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+
+
+
+
   // Ενημέρωση markers με βάση τα φίλτρα
   void _applyFilters() {
     setState(() {
@@ -184,8 +293,8 @@ class _MapScreenState extends State<MapScreen> {
         if (filters['CAT'] == true && marker.markerId.value.contains('cat')) {
           return true;
         }
-        if (filters['Feeding sPAWs'] == true &&
-            marker.markerId.value.contains('food')) {
+      
+          if (filters['Feeding sPAWs'] == true && marker.markerId.value.contains('food')) {
           return true;
         }
         return false; // Αν δεν ταιριάζει με κανένα φίλτρο, μην το εμφανίζεις

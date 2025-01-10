@@ -82,6 +82,9 @@ flutter:
     - assets/icons/
     - assets/logo/
     - assets/frames/
+    - assets/icons/LocationFood.png
+    - assets/icons/doglocation.png
+    - assets/icons/catlocation.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
