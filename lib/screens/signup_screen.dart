@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'menu_screen.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+  const SignupScreen({Key? key}) : super(key: key);
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
@@ -16,58 +16,85 @@ class _SignupScreenState extends State<SignupScreen> {
       TextEditingController();
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
 
   bool showPassword = false;
   bool showConfirmPassword = false;
 
-  Future<bool> _isUsernameUnique(String username) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> usernames = prefs.getStringList('usernames') ?? [];
-    return !usernames.contains(username);
+  /// Ελέγχουμε αν υπάρχει ήδη χρήστης με το ίδιο username
+  Future<bool> _isUsernameTaken(String username) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .get();
+
+    return querySnapshot.docs.isNotEmpty;
   }
 
+  /// Δημιουργία νέου χρήστη στο Firestore
   Future<void> _registerUser() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> usernames = prefs.getStringList('usernames') ?? [];
-    List<Map<String, String>> users = [];
+    final username = usernameController.text.trim();
+    final password = passwordController.text.trim();
+    final confirmPassword = confirmPasswordController.text.trim();
+    final firstName = firstNameController.text.trim();
+    final lastName = lastNameController.text.trim();
 
-    // Retrieve existing users
-    if (prefs.containsKey('users')) {
-      users = List<Map<String, String>>.from(
-        (prefs.getStringList('users') ?? []).map(
-          (userString) => Map<String, String>.from(
-            Uri.splitQueryString(userString),
-          ),
+    // 1. Έλεγχος για password
+    if (password != confirmPassword) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Passwords do not match. Try again.'),
+        ),
+      );
+      return;
+    }
+
+    // 2. Έλεγχος για κενά πεδία
+    if (username.isEmpty ||
+        password.isEmpty ||
+        firstName.isEmpty ||
+        lastName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill in all fields.'),
+        ),
+      );
+      return;
+    }
+
+    // 3. Έλεγχος αν υπάρχει ήδη το username
+    bool taken = await _isUsernameTaken(username);
+    if (taken) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Username is already taken. Choose another.'),
+        ),
+      );
+      return;
+    }
+
+    try {
+      // 4. Δημιουργία νέου document στη συλλογή users
+      await FirebaseFirestore.instance.collection('users').add({
+        'username': username,
+        'password': password, // Σε πραγματικό app => κρυπτογράφηση/ hashing
+        'firstName': firstName,
+        'lastName': lastName,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // 5. Πήγαινε στο MenuScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MenuScreen()),
+      );
+    } catch (e) {
+      // Αν συμβεί κάποιο άλλο σφάλμα (π.χ. δίκτυο)
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Registration failed: $e'),
         ),
       );
     }
-
-    // Add the new user
-    usernames.add(usernameController.text);
-    users.add({
-      'username': usernameController.text,
-      'password': passwordController.text,
-      'firstName': firstNameController.text,
-      'lastName': lastNameController.text,
-      'email': emailController.text,
-    });
-
-    // Save to SharedPreferences
-    prefs.setStringList('usernames', usernames);
-    prefs.setStringList(
-      'users',
-      users.map((user) => Uri(queryParameters: user).query).toList(),
-    );
-
-    // Save current user for user profile
-    prefs.setString('currentUser', usernameController.text);
-
-    // Navigate to the MenuScreen
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const MenuScreen()),
-    );
   }
 
   @override
@@ -88,7 +115,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     height: 60,
                   ),
                 ),
-
                 const SizedBox(height: 16),
 
                 // Form
@@ -107,7 +133,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     ],
                   ),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       const Text(
                         'Sign Up',
@@ -149,21 +174,6 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Email
-                      TextField(
-                        controller: emailController,
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: const TextStyle(color: Colors.purple),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16.0),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
                       // Username
                       TextField(
                         controller: usernameController,
@@ -192,9 +202,11 @@ class _SignupScreenState extends State<SignupScreen> {
                           filled: true,
                           fillColor: Colors.white,
                           suffixIcon: IconButton(
-                            icon: Icon(showPassword
-                                ? Icons.visibility
-                                : Icons.visibility_off),
+                            icon: Icon(
+                              showPassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
                             onPressed: () {
                               setState(() {
                                 showPassword = !showPassword;
@@ -218,9 +230,11 @@ class _SignupScreenState extends State<SignupScreen> {
                           filled: true,
                           fillColor: Colors.white,
                           suffixIcon: IconButton(
-                            icon: Icon(showConfirmPassword
-                                ? Icons.visibility
-                                : Icons.visibility_off),
+                            icon: Icon(
+                              showConfirmPassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
                             onPressed: () {
                               setState(() {
                                 showConfirmPassword = !showConfirmPassword;
@@ -243,30 +257,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             borderRadius: BorderRadius.circular(16.0),
                           ),
                         ),
-                        onPressed: () async {
-                          if (passwordController.text !=
-                              confirmPasswordController.text) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'Passwords do not match. Try again.')),
-                            );
-                            return;
-                          }
-
-                          bool isUnique =
-                              await _isUsernameUnique(usernameController.text);
-                          if (!isUnique) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text(
-                                      'This username is already taken. Choose another.')),
-                            );
-                            return;
-                          }
-
-                          _registerUser();
-                        },
+                        onPressed: _registerUser,
                         child: const Text(
                           'Sign Up',
                           style: TextStyle(fontSize: 18, color: Colors.white),

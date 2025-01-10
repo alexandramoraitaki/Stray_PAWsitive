@@ -47,7 +47,7 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
           final imageUrl = data['image_url'];       // Θα έχει το downloadURL
           final location = data['location'];
           final date = data['date'];
-          final animal = data['animal'];
+          final animal = data['type'];
           final gender = data['gender'];
           final size = data['size'];
           final friendliness = data['friendliness'];
@@ -142,17 +142,23 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
 
 
                         // Επιλογές (DOG, MALE, SMALL, NOT FRIENDLY)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                           _buildOptionButton(animal ?? ''),
+                        GridView(
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2, // Δύο φίλτρα ανά σειρά
+                          crossAxisSpacing: 10.0,
+                          mainAxisSpacing: 10.0,
+                          childAspectRatio: 3, // Αναλογία πλάτους-ύψους
+                        ),
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          _buildOptionButton(animal ?? ''),
                           _buildOptionButton(gender ?? ''),
                           _buildOptionButton(size ?? ''),
                           _buildOptionButton(friendliness ?? ''),
-
-                          ],
-                        ),
-                        const SizedBox(height: 20),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
 
                         // Περιοχή σχολίων με δυνατότητα swipe up
                         GestureDetector(

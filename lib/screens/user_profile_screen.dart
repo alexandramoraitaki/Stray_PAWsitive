@@ -11,7 +11,6 @@ class UserProfileScreen extends StatefulWidget {
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   String username = '...';
-  String email = '...';
   String firstName = '...';
   String lastName = '...';
 
@@ -32,7 +31,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       if (user['username'] == currentUsername) {
         setState(() {
           username = user['username'] ?? 'N/A';
-          email = user['email'] ?? 'N/A';
           firstName = user['firstName'] ?? 'N/A';
           lastName = user['lastName'] ?? 'N/A';
         });
@@ -145,8 +143,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       _buildInfoRow('Last Name', lastName),
                       const Divider(color: Colors.grey),
                       _buildInfoRow('Username', username),
-                      const Divider(color: Colors.grey),
-                      _buildInfoRow('Email', email),
                     ],
                   ),
                 ),

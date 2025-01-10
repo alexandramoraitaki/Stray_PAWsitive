@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'menu_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'signup_screen.dart';
+import 'menu_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,34 +16,57 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController passwordController = TextEditingController();
   bool showPassword = false;
 
-  Future<void> _login(BuildContext context) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> usersData = prefs.getStringList('users') ?? [];
+  Future<void> _login() async {
+    final username = usernameController.text.trim();
+    final password = passwordController.text.trim();
 
-    bool isUserValid = false;
-
-    for (var userString in usersData) {
-      final Map<String, String> user =
-          Map<String, String>.from(Uri.splitQueryString(userString));
-      if (usernameController.text == user['username'] &&
-          passwordController.text == user['password']) {
-        // Αποθήκευση του username ως current_user
-        await prefs.setString('current_user', user['username']!);
-        isUserValid = true;
-        break;
-      }
+    // 1. Έλεγχος αν είναι κενά
+    if (username.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter both username and password.'),
+        ),
+      );
+      return;
     }
 
-    if (isUserValid) {
-      // Μετάβαση στην MenuScreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MenuScreen()),
-      );
-    } else {
-      // Εμφάνιση μηνύματος σφάλματος
+    try {
+      // 2. Αναζήτηση χρήστη με το συγκεκριμένο username
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('username', isEqualTo: username)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        // Δεν βρέθηκε τέτοιος χρήστης
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not found')),
+        );
+        return;
+      }
+
+      // 3. Παίρνουμε το πρώτο έγγραφο
+      final userDoc = querySnapshot.docs.first;
+      final userData = userDoc.data();
+      final storedPassword = userData['password'] ?? '';
+
+      // 4. Έλεγχος password
+      if (password == storedPassword) {
+        // Επιτυχής σύνδεση
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MenuScreen()),
+        );
+      } else {
+        // Λάθος password
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Wrong password')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid username or password')),
+        SnackBar(content: Text('Login failed: $e')),
       );
     }
   }
@@ -93,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Username TextField
+                  // Username
                   TextField(
                     controller: usernameController,
                     decoration: InputDecoration(
@@ -108,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Password TextField with Show/Hide
+                  // Password
                   TextField(
                     controller: passwordController,
                     obscureText: !showPassword,
@@ -148,7 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(16.0),
                       ),
                     ),
-                    onPressed: () => _login(context),
+                    onPressed: _login,
                     child: const Text(
                       'GO',
                       style: TextStyle(fontSize: 18, color: Colors.white),
@@ -161,8 +185,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                            builder: (context) => const SignupScreen()),
+                        MaterialPageRoute(builder: (context) => const SignupScreen()),
                       );
                     },
                     child: const Text(

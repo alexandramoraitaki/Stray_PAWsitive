@@ -3,20 +3,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'menu_screen.dart';
 import 'user_profile_screen.dart';
 import 'bot_screen.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-
+import 'comments_section.dart';
 
 class FeedingSpawtProfileScreen extends StatelessWidget {
   final String documentId; // Το ID του εγγράφου στη Firestore
 
-  const FeedingSpawtProfileScreen({super.key, required this.documentId});
+  const FeedingSpawtProfileScreen({Key? key, required this.documentId})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      // Για να μην εξαφανίζεται το TextField όταν ανοίγει το πληκτρολόγιο
+      resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFFF5F5F5),
+
       body: FutureBuilder<DocumentSnapshot>(
         future: FirebaseFirestore.instance
             .collection('feeding_spawts')
@@ -26,131 +29,126 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return const Center(child: Text("Feeding spot not found"));
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
-
-          // Εξαγωγή δεδομένων
-          final imageUrl = data['image_url'];
-          final location = data['location'];
-          final description = data['description'];
-          final date = data['date'];
+          final imageUrl = data['image_url'] as String?;
+          final location = data['location'] as String?;
+          final description = data['description'] as String?;
+          final date = data['date'] as String?;
 
           return Stack(
             children: [
-              SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 80),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      // Τίτλος "Feeding sPAWt"
-                      Container(
-                        width: screenWidth * 0.6,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFE4E1),
-                          borderRadius: BorderRadius.circular(16.0),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: const Center(
-                          child: Text(
-                            'Feeding sPAWt',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
+              /// Χρησιμοποιούμε Column → Expanded για το κύριο περιεχόμενο
+              /// ώστε, όταν ανοίγει το πληκτρολόγιο, να γίνεται σωστό scrolling.
+              Column(
+                children: [
+                  // Θα κάνουμε το περιεχόμενο scrollable με Expanded + SingleChildScrollView
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.only(
+                        left: 16.0,
+                        right: 16.0,
+                        top: 80, // για να έχουμε χώρο πάνω από τα widgets
+                        bottom: 20,
                       ),
-                      const SizedBox(height: 30),
-
-                      // Εικόνα
-                      if (imageUrl != null)
-                        Container(
-                          width: screenWidth * 0.8,
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Τίτλος
+                          Container(
+                            width: screenWidth * 0.6,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFE4E1),
+                              borderRadius: BorderRadius.circular(16.0),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Feeding sPAWt',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
                               ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16.0),
-                            child: Image.network(
-                              imageUrl,
-                              fit: BoxFit.cover,
-                              loadingBuilder:
-                                  (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              },
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.error, color: Colors.red),
                             ),
                           ),
-                        ),
-                      const SizedBox(height: 20),
+                          const SizedBox(height: 30),
 
-                      // Πεδίο "Location"
-                      _buildProfileField('Location: $location'),
-                      const SizedBox(height: 20),
-
-                      // Ημερομηνία
-                      _buildProfileField('Date: $date'),
-
-                      const SizedBox(height: 30),
-
-                      // Περιγραφή
-                      _buildProfileField('Description: $description'),
-
-                      const SizedBox(height: 30),
-
-                      // Περιοχή Σχολίων
-                      Container(
-                        width: screenWidth * 0.9,
-                        padding: const EdgeInsets.all(16.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16.0),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                          // Εικόνα
+                          if (imageUrl != null)
+                            Container(
+                              width: screenWidth * 0.8,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16.0),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16.0),
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder:
+                                      (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(
+                                      Icons.error,
+                                      color: Colors.red,
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
-                          ],
-                        ),
-                        child: const TextField(
-                          maxLines: null,
-                          decoration: InputDecoration(
-                            hintText: 'Comments',
-                            border: InputBorder.none,
-                          ),
-                        ),
+                          const SizedBox(height: 20),
+
+                          // Location
+                          if (location != null)
+                            _buildProfileField('Location: $location'),
+                          const SizedBox(height: 20),
+
+                          // Ημερομηνία
+                          if (date != null)
+                            _buildProfileField('Date: $date'),
+                          const SizedBox(height: 30),
+
+                          // Περιγραφή
+                          if (description != null)
+                            _buildProfileField('Description: $description'),
+                          const SizedBox(height: 30),
+
+                          // Ενότητα Σχολίων
+                          CommentsSection(documentId: documentId),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
+
+              // --- UI Elements (Logo, Profile Icon, Back Arrow, Bot) ---
 
               // Εικονίδιο Προφίλ πάνω αριστερά
               Positioned(
@@ -160,8 +158,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const UserProfileScreen()),
+                      MaterialPageRoute(builder: (context) => const UserProfileScreen()),
                     );
                   },
                   child: Container(
@@ -187,8 +184,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const MenuScreen()),
+                      MaterialPageRoute(builder: (context) => const MenuScreen()),
                     );
                   },
                   child: Image.asset(
@@ -197,6 +193,8 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
+              // Βελάκι πίσω πάνω αριστερά
               Positioned(
                 top: 20,
                 left: 20,
@@ -208,6 +206,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                 ),
               ),
 
+              // Bot κάτω δεξιά
               Positioned(
                 bottom: 20,
                 right: 20,
@@ -215,8 +214,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const BotScreen()),
+                      MaterialPageRoute(builder: (context) => const BotScreen()),
                     );
                   },
                   child: Image.asset(
@@ -232,7 +230,6 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
     );
   }
 
-  // Μέθοδος για πεδίο Location
   Widget _buildProfileField(String label) {
     return Container(
       width: 300,
