@@ -1,9 +1,29 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'menu_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Βεβαιώσου ότι έχεις αυτό το import
 
 class LogoutScreen extends StatelessWidget {
   const LogoutScreen({super.key});
+
+  /// Συνάρτηση για να καθαρίσει τα SharedPreferences και να μεταβεί στο LoginScreen
+  Future<void> _logout(BuildContext context) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('current_user'); // Αφαίρεση του username
+
+      // Μετάβαση στο LoginScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    } catch (e) {
+      // Αν υπάρξει κάποιο σφάλμα κατά την αφαίρεση
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error during logout: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +66,7 @@ class LogoutScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
+                // Κουμπί "No"
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF5EAFB),
@@ -70,6 +91,8 @@ class LogoutScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+
+                // Κουμπί "Yes"
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF5EAFB),
@@ -79,11 +102,8 @@ class LogoutScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16.0),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    );
+                  onPressed: () async {
+                    await _logout(context); // Κλήση της συνάρτησης logout
                   },
                   child: const Text(
                     'Yes',

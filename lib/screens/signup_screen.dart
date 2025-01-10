@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Πρόσθεσε αυτό το import
+
 import 'menu_screen.dart';
+import 'user_profile_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -82,10 +85,16 @@ class _SignupScreenState extends State<SignupScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // 5. Πήγαινε στο MenuScreen
+      // 5. Αποθήκευση του username στα SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('current_user', username);
+
+      // 6. Μετάβαση στο MenuScreen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MenuScreen()),
+        MaterialPageRoute(
+          builder: (context) => const MenuScreen(),
+        ),
       );
     } catch (e) {
       // Αν συμβεί κάποιο άλλο σφάλμα (π.χ. δίκτυο)

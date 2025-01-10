@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Πρόσθεσε αυτό το import
 
 import 'signup_screen.dart';
 import 'menu_screen.dart';
+import 'user_profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({Key? key}) : super(key: key);
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -54,9 +56,15 @@ class _LoginScreenState extends State<LoginScreen> {
       // 4. Έλεγχος password
       if (password == storedPassword) {
         // Επιτυχής σύνδεση
+        // Αποθήκευση του username στα SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('current_user', username);
+
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MenuScreen()),
+          MaterialPageRoute(
+            builder: (context) => const MenuScreen(),
+          ),
         );
       } else {
         // Λάθος password
@@ -117,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Username
+                  // Username (εδώ το μεταχειριζόμαστε σαν username)
                   TextField(
                     controller: usernameController,
                     decoration: InputDecoration(
@@ -132,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Password
+                  // Password TextField with Show/Hide
                   TextField(
                     controller: passwordController,
                     obscureText: !showPassword,
@@ -180,12 +188,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Sign Up Button
+                  // Sign Up Button (πάει στη SignupScreen)
                   TextButton(
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const SignupScreen()),
+                        MaterialPageRoute(
+                            builder: (context) => const SignupScreen()),
                       );
                     },
                     child: const Text(
