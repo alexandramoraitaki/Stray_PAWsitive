@@ -14,7 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class UploadFeedingSpawtScreen extends StatefulWidget {
-  const UploadFeedingSpawtScreen({super.key});
+  const UploadFeedingSpawtScreen({Key? key}) : super(key: key);
 
   @override
   State<UploadFeedingSpawtScreen> createState() =>
@@ -26,19 +26,17 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   String? location;
   DateTime? selectedDate;
   final TextEditingController descriptionController = TextEditingController();
+
   String? _documentId;
-  String imageUrl = '';  // default κενή τιμή
+  String imageUrl = ''; // default κενή τιμή
   double? selectedLatitude;
   double? selectedLongitude;
 
-
-  // Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
+  /// Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
   Future<void> _getAddressFromCoordinates(LatLng position) async {
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
 
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
@@ -53,7 +51,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
     }
   }
 
-  /// Μέθοδος αποθήκευσης δεδομένων στη Firestore
+  /// Μέθοδος αποθήκευσης Feeding sPAWt στη Firestore/Storage
   Future<void> _saveToFirestore() async {
     try {
       if (image == null || location == null || selectedDate == null) {
@@ -63,42 +61,32 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
         return;
       }
 
-       print("Uploading file: ${image?.path}");
-
-       
-
-      // Ανεβάζουμε την εικόνα στο Firebase Storage
+      // 1. Ανεβάζουμε την εικόνα στο Firebase Storage
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('feeding_spawts/${DateTime.now().millisecondsSinceEpoch}.jpg');
-      //await storageRef.putFile(image!);
-     try {
-  final uploadTask = storageRef.putFile(
-    image!,
-    SettableMetadata(
-      contentType: 'image/jpeg',
-    ),
-  );
 
-  // Περιμένουμε να ολοκληρωθεί η μεταφόρτωση
-  final taskSnapshot = await uploadTask;
-  print("File uploaded: ${taskSnapshot.bytesTransferred} bytes");
-
-      print("File uploaded!");
-      //final 
-      imageUrl = await storageRef.getDownloadURL();
-      print("Download URL: $imageUrl");
+      try {
+        final uploadTask = storageRef.putFile(
+          image!,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+        final taskSnapshot = await uploadTask;
+        imageUrl = await storageRef.getDownloadURL();
       } catch (e) {
-  print("Upload failed: $e");
-}
+        print("Upload failed: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Image upload failed: $e")),
+        );
+        return; 
+      }
 
-      // Δημιουργία αναφοράς και αποθήκευση στο Firestore
+      // 2. Αποθήκευση στο Firestore
       final docRef =
           FirebaseFirestore.instance.collection('feeding_spawts').doc();
-      print('Document ID: ${docRef.id}');
 
       await docRef.set({
-        'type': 'FeedingSpot',
+        'type': 'FeedingSpawt', // Για να ξέρεις ότι είναι Feeding sPAWt
         'image_url': imageUrl,
         'location': location,
         'latitude': selectedLatitude,
@@ -108,29 +96,24 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
         'created_at': FieldValue.serverTimestamp(),
       });
 
-      // Αποθήκευση του documentId
       setState(() {
-        _documentId =
-            docRef.id; // Βεβαιώσου ότι η _documentId ενημερώνεται σωστά
+        _documentId = docRef.id;
       });
       print("Document created successfully with ID: $_documentId");
-
-      
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Feeding sPAWt uploaded successfully!")),
       );
     } catch (e) {
-      print("Error uploading image: $e");
+      print("Error uploading data: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to upload feeding spot: $e")),
+        SnackBar(content: Text("Failed to upload feeding spawt: $e")),
       );
     }
   }
 
   void _handleGoogleMapsSelection(Uri uri) {
     if (uri.scheme == 'straypaws') {
-      // Διαβάζουμε τη διεύθυνση από το deeplink
       final lat = uri.queryParameters['lat'];
       final lng = uri.queryParameters['lng'];
 
@@ -142,11 +125,47 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
     }
   }
 
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Select Image Source"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.camera);
+              },
+              child: const Text("Camera"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.gallery);
+              },
+              child: const Text("Gallery"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
+    if (pickedFile != null) {
+      setState(() {
+        image = File(pickedFile.path);
+      });
+    } else {
+      print("No image was picked!");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    // TextEditingController για την περιγραφή
-    //final TextEditingController descriptionController = TextEditingController();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -162,8 +181,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                   onTap: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const MenuScreen()),
+                      MaterialPageRoute(builder: (context) => const MenuScreen()),
                     );
                   },
                   child: Image.asset(
@@ -182,8 +200,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const MenuScreen()),
+                      MaterialPageRoute(builder: (context) => const MenuScreen()),
                     );
                   },
                 ),
@@ -197,8 +214,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const UserProfileScreen()),
+                      MaterialPageRoute(builder: (context) => const UserProfileScreen()),
                     );
                   },
                   child: Container(
@@ -221,7 +237,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Column(
                   children: [
-                    const SizedBox(height: 100), // Κενό από το πάνω μέρος
+                    const SizedBox(height: 100),
 
                     // Τίτλος "Registration" με κουμπιά "Χ" και "✓"
                     Row(
@@ -265,67 +281,57 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                         IconButton(
                           icon: const Icon(Icons.check, color: Colors.green),
                           onPressed: () async {
-                            //await _saveToFirestore();
                             if (image == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text("Please select an image!")),
+                                  content: Text("Please select an image!"),
+                                ),
                               );
                               return;
                             }
                             if (location == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text("Please select a location!")),
+                                  content: Text("Please select a location!"),
+                                ),
                               );
                               return;
                             }
                             if (selectedDate == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text("Please select a date!")),
-                              );
-                              return;
-                            }
-
-                            // Συνδυασμός ημερομηνίας και ώρας
-                            //final selectedDateTime = DateTime(
-                             // selectedDate!.year,
-                              //selectedDate!.month,
-                             // selectedDate!.day,
-                            //);
-
-                              // 2. Κάνουμε την αποθήκευση στο Firestore (και Storage)
-                            print("Before saving to Firestore");
-                            await _saveToFirestore();
-                            print("After saving to Firestore");
-
-
-                            // 3. Ελέγχουμε αν όντως έχουμε documentId
-                            if (_documentId == null) {
-                                    // Εμφανίζουμε μήνυμα σφάλματος αν δεν δημιουργήθηκε documentId
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to save data. Please try again.")),
-      );
-                              return;
-                            }
-
-                            //if (_documentId != null) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      FeedingSpawtProfileScreen(
-                                    documentId: _documentId!,
-                                  ),
+                                  content: Text("Please select a date!"),
                                 ),
                               );
-                            //}
+                              return;
+                            }
+
+                            await _saveToFirestore();
+
+                            if (_documentId == null) {
+                              // Κάτι πήγε στραβά
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text("Failed to save data. Please try again."),
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Εφόσον σώθηκε, πάμε στο FeedingSpawtProfileScreen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FeedingSpawtProfileScreen(
+                                  documentId: _documentId!,
+                                ),
+                              ),
+                            );
                           },
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 30),
 
                     // Εικόνα
@@ -398,26 +404,25 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                           position = await Geolocator.getCurrentPosition();
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text("Failed to get location: $e")),
+                            SnackBar(content: Text("Failed to get location: $e")),
                           );
                           return;
                         }
 
-                        // Μεταβείτε στην οθόνη GoogleMapsScreen για επιλογή τοποθεσίας
+                        // Μετάβαση σε GoogleMapsScreen
                         final LatLng? selectedLocation = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => GoogleMapsScreen(
-                              initialLocation: LatLng(
-                                  position!.latitude, position.longitude),
+                              initialLocation:
+                                  LatLng(position!.latitude, position.longitude),
                             ),
                           ),
                         );
 
-                        // Αν ο χρήστης επιλέξει τοποθεσία, ενημερώνεται το πεδίο location
+                        // Αν ο χρήστης επιλέξει τοποθεσία
                         if (selectedLocation != null) {
-                          setState((){
+                          setState(() {
                             selectedLatitude = selectedLocation.latitude;
                             selectedLongitude = selectedLocation.longitude;
                           });
@@ -460,7 +465,6 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                           lastDate: DateTime(2100),
                         );
                         if (pickedDate != null) {
-                          print('Selected date: $pickedDate');
                           setState(() {
                             selectedDate = pickedDate;
                           });
@@ -492,7 +496,6 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
 
                     // Πεδίο "Description"
@@ -513,7 +516,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                       child: TextField(
                         controller: descriptionController,
                         maxLines: 5,
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: 'Description',
                           border: InputBorder.none,
                         ),
@@ -531,8 +534,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const BotScreen()),
+                      MaterialPageRoute(builder: (context) => const BotScreen()),
                     );
                   },
                   child: Image.asset(
@@ -546,44 +548,5 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
         ),
       ),
     );
-  }
-
-  void _showImageSourceDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Select Image Source"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _pickImage(ImageSource.camera);
-              },
-              child: const Text("Camera"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _pickImage(ImageSource.gallery);
-              },
-              child: const Text("Gallery"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await ImagePicker().pickImage(source: source);
-    if (pickedFile != null) {
-      print("Picked file path: ${pickedFile.path}");
-      setState(() {
-        image = File(pickedFile.path);
-      });
-    } else {
-    print("No image was picked!");
-  }
   }
 }

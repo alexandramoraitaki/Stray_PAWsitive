@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'screens/login_screen.dart'; // Κάνουμε import την οθόνη
 import 'screens/signup_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding
       .ensureInitialized(); // Εξασφαλίζει ότι τα widgets είναι δεσμευμένα πριν από την αρχικοποίηση του Firebase
-  await Firebase.initializeApp(); // Αρχικοποιεί το Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 

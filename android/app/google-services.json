@@ -1,29 +1,29 @@
 {
-    "project_info": {
-        "project_number": "709434884463",
-        "project_id": "stray-pawsitive-8cff4",
-        "storage_bucket": "stray-pawsitive-8cff4.firebasestorage.app"
-    },
-    "client": [
-        {
-            "client_info": {
-                "mobilesdk_app_id": "1:709434884463:android:29d402f6a72fc7d64ca89a",
-                "android_client_info": {
-                    "package_name": "com.example.stray_pawsitive"
-                }
-            },
-            "oauth_client": [],
-            "api_key": [
-                {
-                    "current_key": "AIzaSyD7MCC75IDpQOEnTazWqyLrIWivJF89QQc"
-                }
-            ],
-            "services": {
-                "appinvite_service": {
-                    "other_platform_oauth_client": []
-                }
-            }
+  "project_info": {
+    "project_number": "709434884463",
+    "project_id": "stray-pawsitive-8cff4",
+    "storage_bucket": "stray-pawsitive-8cff4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:709434884463:android:29d402f6a72fc7d64ca89a",
+        "android_client_info": {
+          "package_name": "com.example.stray_pawsitive"
         }
-    ],
-    "configuration_version": "1"
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD7MCC75IDpQOEnTazWqyLrIWivJF89QQc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
 }

@@ -7,12 +7,11 @@ import 'package:geolocator/geolocator.dart';
 import 'google_maps_screen.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class UploadPawsitiveFriendScreen extends StatefulWidget {
-  const UploadPawsitiveFriendScreen({super.key});
+  const UploadPawsitiveFriendScreen({Key? key}) : super(key: key);
 
   @override
   State<UploadPawsitiveFriendScreen> createState() =>
@@ -21,28 +20,24 @@ class UploadPawsitiveFriendScreen extends StatefulWidget {
 
 class _UploadPawsitiveFriendScreenState
     extends State<UploadPawsitiveFriendScreen> {
-  File? image; // Η επιλεγμένη εικόνα
+  File? image;
   DateTime? selectedDate;
   String? location;
-  String? selectedAnimal; // "DOG" ή "CAT"
-  String? selectedGender; // Για Male/Female
-  String? selectedSize; // Για Small/Medium/Large
-  String? selectedFriendliness;// Για Friendly/Not Friendly
+  String? selectedAnimal;    // "DOG" ή "CAT"
+  String? selectedGender;    // "MALE" ή "FEMALE"
+  String? selectedSize;      // "SMALL" / "MEDIUM" / "LARGE"
+  String? selectedFriendliness; // "FRIENDLY" ή "NOT FRIENDLY"
   String imageUrl = '';
-  String? _documentId; // Δημιουργούμε τη μεταβλητή
+  String? _documentId; 
   final TextEditingController descriptionController = TextEditingController();
   double? selectedLatitude;
   double? selectedLongitude;
 
-
-  // Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
+  /// Μετατροπή συντεταγμένων σε διεύθυνση
   Future<void> _getAddressFromCoordinates(LatLng position) async {
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
         setState(() {
@@ -56,50 +51,42 @@ class _UploadPawsitiveFriendScreenState
     }
   }
 
+  /// Αποθήκευση στο Firestore/Storage
   Future<void> _saveToFirestore() async {
-      try {
-    // 1. Έλεγχος κενών πεδίων
-    if (image == null || location == null || selectedDate == null) {
+    try {
+      // 1. Έλεγχος πεδίων
+      if (image == null || location == null || selectedDate == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Please fill in all the fields")),
         );
         return;
       }
 
-    print("Uploading file: ${image?.path}");
+      // 2. Ανεβάζουμε εικόνα στο Storage
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('pawsitive_friends/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      try {
+        final uploadTask = storageRef.putFile(
+          image!,
+          SettableMetadata(contentType: 'image/jpeg'),
+        );
+        final taskSnapshot = await uploadTask;
+        imageUrl = await storageRef.getDownloadURL();
+      } catch (e) {
+        print("Upload failed: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Image upload failed: $e")),
+        );
+        return;
+      }
 
-    // 2. Ανεβάζουμε την εικόνα στο Firebase Storage
-    final storageRef = FirebaseStorage.instance
-        .ref()
-        .child('pawsitive_friends/${DateTime.now().millisecondsSinceEpoch}.jpg');
-
-
-
-
-    try {
-            final uploadTask = storageRef.putFile(
-        image!,
-        SettableMetadata(contentType: 'image/jpeg'),
-      );
-
-      final taskSnapshot = await uploadTask;
-      print("File uploaded: ${taskSnapshot.bytesTransferred} bytes");
-
-      // 3. Παίρνουμε το download URL
-      imageUrl = await storageRef.getDownloadURL();
-      print("Download URL: $imageUrl");
-    } catch (e) {
-      print("Upload failed: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Image upload failed: $e")),
-      );
-      return; // Σταματάμε, δεν προχωράμε σε Firestore
-    }
+      // 3. Αποθήκευση στο Firestore
       final docRef =
           FirebaseFirestore.instance.collection('pawsitive_friends').doc();
 
-     await docRef.set({
-        'type': selectedAnimal,
+      await docRef.set({
+        'type': selectedAnimal,               // "DOG" ή "CAT"
         'image_url': imageUrl,
         'location': location,
         'latitude': selectedLatitude,
@@ -107,25 +94,23 @@ class _UploadPawsitiveFriendScreenState
         'date': selectedDate!.toIso8601String(),
         'description': descriptionController.text,
         'created_at': FieldValue.serverTimestamp(),
-        'animal': selectedAnimal ?? '',
         'gender': selectedGender ?? '',
         'size': selectedSize ?? '',
         'friendliness': selectedFriendliness ?? '',
-
       });
 
-       // Αποθήκευση του documentId
+      // Αποθηκεύουμε το id
       setState(() {
-        _documentId =
-            docRef.id; // Βεβαιώσου ότι η _documentId ενημερώνεται σωστά
+        _documentId = docRef.id;
       });
 
-      // Ειδοποίηση επιτυχίας
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text("Pawsitive Friend uploaded successfully!")),
+          content: Text("Pawsitive Friend uploaded successfully!"),
+        ),
       );
     } catch (e) {
+      print("Error uploading data: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to upload data: $e")),
       );
@@ -134,7 +119,6 @@ class _UploadPawsitiveFriendScreenState
 
   void _handleGoogleMapsSelection(Uri uri) {
     if (uri.scheme == 'straypaws') {
-      // Διαβάζουμε τη διεύθυνση από το deeplink
       final lat = uri.queryParameters['lat'];
       final lng = uri.queryParameters['lng'];
 
@@ -143,6 +127,43 @@ class _UploadPawsitiveFriendScreenState
           location = 'Latitude: $lat, Longitude: $lng';
         });
       }
+    }
+  }
+
+  /// Επιλογή εικόνας
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Select Image Source"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.camera);
+              },
+              child: const Text("Camera"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.gallery);
+              },
+              child: const Text("Gallery"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
+    if (pickedFile != null) {
+      setState(() {
+        image = File(pickedFile.path);
+      });
     }
   }
 
@@ -218,10 +239,9 @@ class _UploadPawsitiveFriendScreenState
                   ),
                   const SizedBox(height: 20),
 
-                  // Πεδίο "Location"
+                  // Location
                   GestureDetector(
                     onTap: () async {
-                      // Εντοπισμός τοποθεσίας χρήστη
                       Position? position;
                       try {
                         bool serviceEnabled =
@@ -242,7 +262,8 @@ class _UploadPawsitiveFriendScreenState
                           if (permission == LocationPermission.denied) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                  content: Text("Location permission denied.")),
+                                  content:
+                                      Text("Location permission denied.")),
                             );
                             return;
                           }
@@ -265,23 +286,21 @@ class _UploadPawsitiveFriendScreenState
                         return;
                       }
 
-                      // Μεταβείτε στην οθόνη GoogleMapsScreen για επιλογή τοποθεσίας
                       final LatLng? selectedLocation = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => GoogleMapsScreen(
                             initialLocation:
-                                LatLng(position!.latitude, position!.longitude),
+                                LatLng(position!.latitude, position.longitude),
                           ),
                         ),
                       );
 
-                      // Αν ο χρήστης επιλέξει τοποθεσία, ενημερώνεται το πεδίο location
                       if (selectedLocation != null) {
-                            setState((){
-                            selectedLatitude = selectedLocation.latitude;
-                            selectedLongitude = selectedLocation.longitude;
-                          });
+                        setState(() {
+                          selectedLatitude = selectedLocation.latitude;
+                          selectedLongitude = selectedLocation.longitude;
+                        });
                         await _getAddressFromCoordinates(selectedLocation);
                       }
                     },
@@ -321,7 +340,6 @@ class _UploadPawsitiveFriendScreenState
                         lastDate: DateTime(2100),
                       );
                       if (pickedDate != null) {
-                        print('Selected date: $pickedDate');
                         setState(() {
                           selectedDate = pickedDate;
                         });
@@ -355,7 +373,7 @@ class _UploadPawsitiveFriendScreenState
                   ),
                   const SizedBox(height: 20),
 
-                  // Επιλογές για "DOG" και "CAT"
+                  // Επιλογές DOG/CAT
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -381,7 +399,7 @@ class _UploadPawsitiveFriendScreenState
                   ),
                   const SizedBox(height: 20),
 
-                  // Επιλογές για "MALE" και "FEMALE"
+                  // Επιλογές MALE/FEMALE
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -407,7 +425,7 @@ class _UploadPawsitiveFriendScreenState
                   ),
                   const SizedBox(height: 40),
 
-                  // Επιλογές για "SMALL", "MEDIUM", "LARGE"
+                  // Επιλογές SMALL/MEDIUM/LARGE
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -442,7 +460,7 @@ class _UploadPawsitiveFriendScreenState
                   ),
                   const SizedBox(height: 20),
 
-                  // Επιλογές για "FRIENDLY" και "NOT FRIENDLY"
+                  // Επιλογές FRIENDLY/NOT FRIENDLY
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -468,7 +486,7 @@ class _UploadPawsitiveFriendScreenState
                   ),
                   const SizedBox(height: 20),
 
-                  // Πεδίο "Description"
+                  // Πεδίο Description
                   Container(
                     width: screenWidth * 0.8,
                     padding: const EdgeInsets.all(16.0),
@@ -483,9 +501,10 @@ class _UploadPawsitiveFriendScreenState
                         ),
                       ],
                     ),
-                    child: const TextField(
+                    child: TextField(
+                      controller: descriptionController,
                       maxLines: 5,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         hintText: 'Description',
                         border: InputBorder.none,
                       ),
@@ -496,19 +515,19 @@ class _UploadPawsitiveFriendScreenState
             ),
           ),
 
-          // Κουμπί "X" (Close)
+          // Κουμπί "X" 
           Positioned(
             top: 20,
             left: screenWidth * 0.1,
             child: IconButton(
               icon: const Icon(Icons.close, color: Colors.red),
               onPressed: () {
-                Navigator.pop(context); // Επιστροφή στην προηγούμενη σελίδα
+                Navigator.pop(context);
               },
             ),
           ),
 
-          // Κουμπί "✓" (Check)
+          // Κουμπί "✓" 
           Positioned(
             top: 20,
             right: screenWidth * 0.1,
@@ -516,7 +535,6 @@ class _UploadPawsitiveFriendScreenState
               icon: const Icon(Icons.check, color: Colors.green),
               onPressed: () async {
                 if (image == null) {
-                  // Ειδοποίηση ότι δεν έχει επιλεγεί εικόνα
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Please select an image!")),
                   );
@@ -533,21 +551,22 @@ class _UploadPawsitiveFriendScreenState
                   return;
                 } else {
                   await _saveToFirestore();
-                  // 3. Ελέγχουμε αν όντως έχουμε documentId
-                            if (_documentId == null) {
-                                    // Εμφανίζουμε μήνυμα σφάλματος αν δεν δημιουργήθηκε documentId
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text("Failed to save data. Please try again.")),
-                                    );
-                              return;
-                            }
-                  // Προχωράει στην επόμενη σελίδα
+
+                  if (_documentId == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Failed to save data. Please try again."),
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Μεταφορά στο PawsitiveFriendProfileScreen
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          PawsitiveFriendProfileScreen(documentId: _documentId!,
-                          ),
+                          PawsitiveFriendProfileScreen(documentId: _documentId!),
                     ),
                   );
                 }
@@ -559,42 +578,7 @@ class _UploadPawsitiveFriendScreenState
     );
   }
 
-  void _showImageSourceDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Select Image Source"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _pickImage(ImageSource.camera);
-              },
-              child: const Text("Camera"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _pickImage(ImageSource.gallery);
-              },
-              child: const Text("Gallery"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    final pickedFile = await ImagePicker().pickImage(source: source);
-    if (pickedFile != null) {
-      setState(() {
-        image = File(pickedFile.path);
-      });
-    }
-  }
-
+  /// Κουμπί-βοηθός για τα φίλτρα
   Widget _buildFilterButton({
     required String label,
     required bool isSelected,
@@ -622,55 +606,6 @@ class _UploadPawsitiveFriendScreenState
             fontWeight: FontWeight.bold,
             color: isSelected ? Colors.white : Colors.purple,
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileField(String label) {
-    return Container(
-      width: 300,
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5EAFB),
-        borderRadius: BorderRadius.circular(16.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.purple,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOptionButton(String label) {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFFF5EAFB),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
-        ),
-      ),
-      onPressed: () {
-        // Λογική επιλογής
-      },
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Colors.purple,
         ),
       ),
     );
