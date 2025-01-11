@@ -82,10 +82,16 @@ flutter:
   assets:
     - assets/icons/
     - assets/logo/
+    - assets/icons/bot.png
     - assets/frames/
     - assets/icons/LocationFood.png
     - assets/icons/doglocation.png
     - assets/icons/catlocation.png
+    - assets/icons/achievement1.png
+    - assets/icons/achievement2.png
+    - assets/icons/achievement3.png
+    - assets/icons/achievement4.png
+    - assets/icons/achievement5.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
