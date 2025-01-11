@@ -204,445 +204,537 @@ class _UploadPawsitiveFriendScreenState
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Upload Pawsitive Friend'),
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 80),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Τίτλος "Registration"
-                  Container(
-                    width: screenWidth * 0.6,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFFE4E1),
-                      borderRadius: BorderRadius.circular(16.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // Κύριο περιεχόμενο με scroll για μικρότερες οθόνες
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 100), // Προσθήκη bottom padding
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 100), // Αυξημένο spacing για αποφυγή επικάλυψης
+
+                    // Τίτλος "Registration" με κουμπιά "Χ" και "✓"
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.red),
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const MenuScreen()),
+                            );
+                          },
+                        ),
+                        Container(
+                          width: screenWidth * 0.5,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFE4E1),
+                            borderRadius: BorderRadius.circular(16.0),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Registration',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.check, color: Colors.green),
+                          onPressed: () async {
+                            // Έλεγχος πεδίων πριν την αποστολή
+                            if (image == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("Please select an image!")),
+                              );
+                              return;
+                            }
+                            if (location == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("Please select a location!")),
+                              );
+                              return;
+                            }
+                            if (selectedDate == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("Please select a date!")),
+                              );
+                              return;
+                            }
+                            if (descriptionController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("Please enter a description!")),
+                              );
+                              return;
+                            }
+                            if (selectedAnimal == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        "Please select an animal type (DOG/CAT)!")),
+                              );
+                              return;
+                            }
+                            if (selectedGender == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        "Please select a gender (MALE/FEMALE)!")),
+                              );
+                              return;
+                            }
+                            if (selectedSize == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        "Please select a size (SMALL/MEDIUM/LARGE)!")),
+                              );
+                              return;
+                            }
+                            if (selectedFriendliness == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        "Please select friendliness (FRIENDLY/NOT FRIENDLY)!")),
+                              );
+                              return;
+                            }
+
+                            await _saveToFirestore();
+
+                            if (_documentId == null) {
+                              // Κάτι πήγε στραβά
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text("Failed to save data. Please try again."),
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Μεταφορά στο PawsitiveFriendProfileScreen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    PawsitiveFriendProfileScreen(documentId: _documentId!),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
-                    child: const Center(
-                      child: Text(
-                        'Registration',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                    const SizedBox(height: 30),
+
+                    // Επιλογή Εικόνας
+                    GestureDetector(
+                      onTap: _showImageSourceDialog,
+                      child: Container(
+                        width: screenWidth * 0.8,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: image == null
+                              ? const Icon(Icons.image,
+                                  size: 50, color: Colors.grey)
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  child: Image.file(image!, fit: BoxFit.cover),
+                                ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 30),
+                    const SizedBox(height: 20),
 
-                  // Επιλογή Εικόνας
-                  Container(
-                    width: screenWidth * 0.8,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: image == null
-                          ? IconButton(
-                              icon: const Icon(Icons.image,
-                                  size: 50, color: Colors.grey),
-                              onPressed: _showImageSourceDialog,
-                            )
-                          : Image.file(image!, fit: BoxFit.cover),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Επιλογή Τοποθεσίας
-                  GestureDetector(
-                    onTap: () async {
-                      Position? position;
-                      try {
-                        bool serviceEnabled =
-                            await Geolocator.isLocationServiceEnabled();
-                        if (!serviceEnabled) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content:
-                                    Text("Location services are disabled.")),
-                          );
-                          return;
-                        }
-
-                        LocationPermission permission =
-                            await Geolocator.checkPermission();
-                        if (permission == LocationPermission.denied) {
-                          permission =
-                              await Geolocator.requestPermission();
-                          if (permission == LocationPermission.denied) {
+                    // Επιλογή Τοποθεσίας
+                    GestureDetector(
+                      onTap: () async {
+                        Position? position;
+                        try {
+                          bool serviceEnabled =
+                              await Geolocator.isLocationServiceEnabled();
+                          if (!serviceEnabled) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                   content:
-                                      Text("Location permission denied.")),
+                                      Text("Location services are disabled.")),
                             );
                             return;
                           }
-                        }
 
-                        if (permission == LocationPermission.deniedForever) {
+                          LocationPermission permission =
+                              await Geolocator.checkPermission();
+                          if (permission == LocationPermission.denied) {
+                            permission = await Geolocator.requestPermission();
+                            if (permission == LocationPermission.denied) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text("Location permission denied.")),
+                              );
+                              return;
+                            }
+                          }
+
+                          if (permission == LocationPermission.deniedForever) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      "Location permission permanently denied.")),
+                            );
+                            return;
+                          }
+
+                          position = await Geolocator.getCurrentPosition();
+                        } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    "Location permission permanently denied.")),
+                            SnackBar(content: Text("Failed to get location: $e")),
                           );
                           return;
                         }
 
-                        position = await Geolocator.getCurrentPosition();
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Failed to get location: $e")),
+                        final LatLng? selectedLocation = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GoogleMapsScreen(
+                              initialLocation:
+                                  LatLng(position!.latitude, position.longitude),
+                            ),
+                          ),
                         );
-                        return;
-                      }
 
-                      final LatLng? selectedLocation = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => GoogleMapsScreen(
-                            initialLocation:
-                                LatLng(position!.latitude, position.longitude),
-                          ),
+                        // Αν ο χρήστης επιλέξει τοποθεσία
+                        if (selectedLocation != null) {
+                          setState(() {
+                            selectedLatitude = selectedLocation.latitude;
+                            selectedLongitude = selectedLocation.longitude;
+                          });
+                          await _getAddressFromCoordinates(selectedLocation);
+                        }
+                      },
+                      child: Container(
+                        width: screenWidth * 0.8,
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5EAFB),
+                          borderRadius: BorderRadius.circular(16.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      );
-
-                      if (selectedLocation != null) {
-                        setState(() {
-                          selectedLatitude = selectedLocation.latitude;
-                          selectedLongitude = selectedLocation.longitude;
-                        });
-                        await _getAddressFromCoordinates(selectedLocation);
-                      }
-                    },
-                    child: Container(
-                      width: screenWidth * 0.8,
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5EAFB),
-                        borderRadius: BorderRadius.circular(16.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                        child: Text(
+                          location ?? 'Select Location',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple,
                           ),
-                        ],
-                      ),
-                      child: Text(
-                        location ?? 'Select Location',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.purple,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Επιλογή Ημερομηνίας
-                  GestureDetector(
-                    onTap: () async {
-                      final pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          selectedDate = pickedDate;
-                        });
-                      }
-                    },
-                    child: Container(
-                      width: screenWidth * 0.8,
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF5EAFB),
-                        borderRadius: BorderRadius.circular(16.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                    // Επιλογή Ημερομηνίας
+                    GestureDetector(
+                      onTap: () async {
+                        final pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
+                        if (pickedDate != null) {
+                          setState(() {
+                            selectedDate = pickedDate;
+                          });
+                        }
+                      },
+                      child: Container(
+                        width: screenWidth * 0.8,
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF5EAFB),
+                          borderRadius: BorderRadius.circular(16.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          selectedDate == null
+                              ? 'Select Date'
+                              : 'Date: ${DateFormat('yyyy-MM-dd').format(selectedDate!)}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple,
                           ),
-                        ],
-                      ),
-                      child: Text(
-                        selectedDate == null
-                            ? 'Select Date'
-                            : 'Date: ${DateFormat('yyyy-MM-dd').format(selectedDate!)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.purple,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 20),
 
-                  // Επιλογές DOG/CAT
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildFilterButton(
-                        label: 'DOG',
-                        isSelected: selectedAnimal == 'DOG',
-                        onTap: () {
-                          setState(() {
-                            selectedAnimal = 'DOG';
-                          });
-                        },
-                      ),
-                      _buildFilterButton(
-                        label: 'CAT',
-                        isSelected: selectedAnimal == 'CAT',
-                        onTap: () {
-                          setState(() {
-                            selectedAnimal = 'CAT';
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Επιλογές MALE/FEMALE
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildFilterButton(
-                        label: 'MALE',
-                        isSelected: selectedGender == 'MALE',
-                        onTap: () {
-                          setState(() {
-                            selectedGender = 'MALE';
-                          });
-                        },
-                      ),
-                      _buildFilterButton(
-                        label: 'FEMALE',
-                        isSelected: selectedGender == 'FEMALE',
-                        onTap: () {
-                          setState(() {
-                            selectedGender = 'FEMALE';
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 40),
-
-                  // Επιλογές SMALL/MEDIUM/LARGE
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildFilterButton(
-                        label: 'SMALL',
-                        isSelected: selectedSize == 'SMALL',
-                        onTap: () {
-                          setState(() {
-                            selectedSize = 'SMALL';
-                          });
-                        },
-                      ),
-                      _buildFilterButton(
-                        label: 'MEDIUM',
-                        isSelected: selectedSize == 'MEDIUM',
-                        onTap: () {
-                          setState(() {
-                            selectedSize = 'MEDIUM';
-                          });
-                        },
-                      ),
-                      _buildFilterButton(
-                        label: 'LARGE',
-                        isSelected: selectedSize == 'LARGE',
-                        onTap: () {
-                          setState(() {
-                            selectedSize = 'LARGE';
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Επιλογές FRIENDLY/NOT FRIENDLY
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildFilterButton(
-                        label: 'FRIENDLY',
-                        isSelected: selectedFriendliness == 'FRIENDLY',
-                        onTap: () {
-                          setState(() {
-                            selectedFriendliness = 'FRIENDLY';
-                          });
-                        },
-                      ),
-                      _buildFilterButton(
-                        label: 'NOT FRIENDLY',
-                        isSelected: selectedFriendliness == 'NOT FRIENDLY',
-                        onTap: () {
-                          setState(() {
-                            selectedFriendliness = 'NOT FRIENDLY';
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Πεδίο Description
-                  Container(
-                    width: screenWidth * 0.8,
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                    // Επιλογές DOG/CAT
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildFilterButton(
+                          label: 'DOG',
+                          isSelected: selectedAnimal == 'DOG',
+                          onTap: () {
+                            setState(() {
+                              selectedAnimal = 'DOG';
+                            });
+                          },
+                        ),
+                        _buildFilterButton(
+                          label: 'CAT',
+                          isSelected: selectedAnimal == 'CAT',
+                          onTap: () {
+                            setState(() {
+                              selectedAnimal = 'CAT';
+                            });
+                          },
                         ),
                       ],
                     ),
-                    child: TextField(
-                      controller: descriptionController,
-                      maxLines: 5,
-                      decoration: const InputDecoration(
-                        hintText: 'Description',
-                        border: InputBorder.none,
+                    const SizedBox(height: 20),
+
+                    // Επιλογές MALE/FEMALE
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildFilterButton(
+                          label: 'MALE',
+                          isSelected: selectedGender == 'MALE',
+                          onTap: () {
+                            setState(() {
+                              selectedGender = 'MALE';
+                            });
+                          },
+                        ),
+                        _buildFilterButton(
+                          label: 'FEMALE',
+                          isSelected: selectedGender == 'FEMALE',
+                          onTap: () {
+                            setState(() {
+                              selectedGender = 'FEMALE';
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Επιλογές SMALL/MEDIUM/LARGE
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildFilterButton(
+                          label: 'SMALL',
+                          isSelected: selectedSize == 'SMALL',
+                          onTap: () {
+                            setState(() {
+                              selectedSize = 'SMALL';
+                            });
+                          },
+                        ),
+                        _buildFilterButton(
+                          label: 'MEDIUM',
+                          isSelected: selectedSize == 'MEDIUM',
+                          onTap: () {
+                            setState(() {
+                              selectedSize = 'MEDIUM';
+                            });
+                          },
+                        ),
+                        _buildFilterButton(
+                          label: 'LARGE',
+                          isSelected: selectedSize == 'LARGE',
+                          onTap: () {
+                            setState(() {
+                              selectedSize = 'LARGE';
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Επιλογές FRIENDLY/NOT FRIENDLY
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildFilterButton(
+                          label: 'FRIENDLY',
+                          isSelected: selectedFriendliness == 'FRIENDLY',
+                          onTap: () {
+                            setState(() {
+                              selectedFriendliness = 'FRIENDLY';
+                            });
+                          },
+                        ),
+                        _buildFilterButton(
+                          label: 'NOT FRIENDLY',
+                          isSelected: selectedFriendliness == 'NOT FRIENDLY',
+                          onTap: () {
+                            setState(() {
+                              selectedFriendliness = 'NOT FRIENDLY';
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Πεδίο Description
+                    Container(
+                      width: screenWidth * 0.8,
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: descriptionController,
+                        maxLines: 5,
+                        decoration: const InputDecoration(
+                          hintText: 'Description',
+                          border: InputBorder.none,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Κουμπί "X" 
-          Positioned(
-            top: 20,
-            left: screenWidth * 0.1,
-            child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.red),
-              onPressed: () {
-                Navigator.pop(context);
-              },
+            // Εικονίδιο logo πάνω δεξιά
+            Positioned(
+              top: 20,
+              right: 20, // Διορθωμένη θέση
+              child: GestureDetector(
+                onTap: () {
+                  // Μεταφορά στο MenuScreen
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MenuScreen()),
+                  );
+                },
+                child: Image.asset(
+                  'assets/logo/logo.png',
+                  height: 60,
+                ),
+              ),
             ),
-          ),
 
-          // Κουμπί "✓" 
-          Positioned(
-            top: 20,
-            right: screenWidth * 0.1,
-            child: IconButton(
-              icon: const Icon(Icons.check, color: Colors.green),
-              onPressed: () async {
-                // Έλεγχος πεδίων πριν την αποστολή
-                if (image == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please select an image!")),
-                  );
-                  return;
-                }
-                if (location == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please select a location!")),
-                  );
-                  return;
-                }
-                if (selectedDate == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please select a date!")),
-                  );
-                  return;
-                }
-                if (descriptionController.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please enter a description!")),
-                  );
-                  return;
-                }
-                if (selectedAnimal == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please select an animal type (DOG/CAT)!")),
-                  );
-                  return;
-                }
-                if (selectedGender == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please select a gender (MALE/FEMALE)!")),
-                  );
-                  return;
-                }
-                if (selectedSize == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please select a size (SMALL/MEDIUM/LARGE)!")),
-                  );
-                  return;
-                }
-                if (selectedFriendliness == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please select friendliness (FRIENDLY/NOT FRIENDLY)!")),
-                  );
-                  return;
-                }
+            // Πίσω βέλος πάνω αριστερά
+            Positioned(
+              top: 20,
+              left: 20,
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.pinkAccent),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+            ),
 
-                await _saveToFirestore();
-
-                if (_documentId == null) {
-                  // Κάτι πήγε στραβά
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content:
-                          Text("Failed to save data. Please try again."),
-                    ),
+            // Εικονίδιο Προφίλ πάνω αριστερά
+            Positioned(
+              top: 20,
+              left: 70,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const UserProfileScreen()),
                   );
-                  return;
-                }
-
-                // Μεταφορά στο PawsitiveFriendProfileScreen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        PawsitiveFriendProfileScreen(documentId: _documentId!),
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.pinkAccent, width: 2),
                   ),
-                );
-              },
+                  child: const Icon(
+                    Icons.person,
+                    size: 28,
+                    color: Colors.pinkAccent,
+                  ),
+                ),
+              ),
             ),
-          ),
-        ],
+
+            // Εικονίδιο bot κάτω δεξιά (π.χ. chatbot)
+            Positioned(
+              bottom: 20,
+              right: 20,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const BotScreen()),
+                  );
+                },
+                child: Image.asset(
+                  'assets/icons/bot.png',
+                  height: 60,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
