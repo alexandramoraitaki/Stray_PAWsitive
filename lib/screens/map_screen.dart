@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -8,6 +10,8 @@ import 'menu_screen.dart';
 import 'bot_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'pawsitive_friend_profile_screen.dart';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart'; // Προσθήκη του url_launcher
 
 class MapScreen extends StatefulWidget {
   final LatLng? currentLocation;
@@ -19,11 +23,12 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  // Φίλτρα που επιθυμείς: Feeding sPAWs, DOG, CAT
+  // Φίλτρα που επιθυμείς: Feeding sPAWs, DOG, CAT, Vets
   final Map<String, bool> filters = {
     'Feeding sPAWs': false,
     'DOG': false,
     'CAT': false,
+    'Vets': false, // Νέο φίλτρο για Κτηνιάτρους
   };
 
   /// MARKERS
@@ -31,14 +36,20 @@ class _MapScreenState extends State<MapScreen> {
   Set<Marker> allMarkers = {};
   // Αυτοί που περνούν τα φίλτρα
   Set<Marker> filteredMarkers = {};
+  // Markers για κτηνιάτρους
+  Set<Marker> vetMarkers = {};
 
   GoogleMapController? _mapController;
   LatLng? _currentLocation;
 
   // Custom icons
   late BitmapDescriptor foodIcon; // Για Feeding sPAWs
-  late BitmapDescriptor dogIcon;  // Για DOG
-  late BitmapDescriptor catIcon;  // Για CAT
+  late BitmapDescriptor dogIcon; // Για DOG
+  late BitmapDescriptor catIcon; // Για CAT
+  late BitmapDescriptor vetIcon; // Για Κτηνιάτρους
+
+  // Google Places API Key (Βεβαιώσου ότι το έχεις προσθέσει σωστά)
+  final String googleApiKey = 'YOUR_GOOGLE_PLACES_API_KEY'; // Αντικατάστησε με το πραγματικό σου API Key
 
   @override
   void initState() {
@@ -52,31 +63,39 @@ class _MapScreenState extends State<MapScreen> {
     }
     // Φορτώνουμε markers απ' το Firestore
     _loadMarkersFromFirestore();
+    // Φορτώνουμε τα custom icons
+    _loadCustomIcons();
+  }
+
+  /// Φορτώνουμε τα custom icons
+  Future<void> _loadCustomIcons() async {
+    foodIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/icons/LocationFood.png',
+    );
+    dogIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/icons/doglocation.png',
+    );
+    catIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/icons/catlocation.png',
+    );
+    vetIcon = await BitmapDescriptor.fromAssetImage(
+      const ImageConfiguration(size: Size(48, 48)),
+      'assets/icons/vetlocation.png',
+    );
+    setState(() {}); // Ενημερώνουμε το UI αφού φορτώσουν τα icons
   }
 
   /// Παίρνουμε markers για Feeding sPAWs και Pawsitive Friends
   Future<void> _loadMarkersFromFirestore() async {
     final firestore = FirebaseFirestore.instance;
     try {
-      // Φορτώνουμε τα custom icons
-      foodIcon = await BitmapDescriptor.fromAssetImage(
-        const ImageConfiguration(size: Size(48, 48)),
-        'assets/icons/LocationFood.png',
-      );
-      dogIcon = await BitmapDescriptor.fromAssetImage(
-        const ImageConfiguration(size: Size(48, 48)),
-        'assets/icons/doglocation.png',
-      );
-      catIcon = await BitmapDescriptor.fromAssetImage(
-        const ImageConfiguration(size: Size(48, 48)),
-        'assets/icons/catlocation.png',
-      );
-
       Set<Marker> markers = {};
 
       // 1) Φέρνουμε τα Feeding sPAWs
-      final feedingSnap =
-          await firestore.collection('feeding_spawts').get();
+      final feedingSnap = await firestore.collection('feeding_spawts').get();
       for (var doc in feedingSnap.docs) {
         final data = doc.data();
         final lat = data['latitude'];
@@ -109,8 +128,7 @@ class _MapScreenState extends State<MapScreen> {
       }
 
       // 2) Φέρνουμε τα Pawsitive Friends
-      final pawsitiveSnap =
-          await firestore.collection('pawsitive_friends').get();
+      final pawsitiveSnap = await firestore.collection('pawsitive_friends').get();
       for (var doc in pawsitiveSnap.docs) {
         final data = doc.data();
         final lat = data['latitude'];
@@ -148,8 +166,7 @@ class _MapScreenState extends State<MapScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        PawsitiveFriendProfileScreen(documentId: docId),
+                    builder: (_) => PawsitiveFriendProfileScreen(documentId: docId),
                   ),
                 );
               },
@@ -186,12 +203,19 @@ class _MapScreenState extends State<MapScreen> {
         }
       }
 
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception("Location permissions are permanently denied.");
+      }
+
       Position position = await Geolocator.getCurrentPosition();
       setState(() {
         _currentLocation = LatLng(position.latitude, position.longitude);
       });
     } catch (e) {
       print("Error getting location: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error getting location: $e")),
+      );
     }
   }
 
@@ -230,7 +254,7 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
-  /// Εφαρμογή φίλτρων (DOG, CAT, Feeding sPAWs)
+  /// Εφαρμογή φίλτρων (DOG, CAT, Feeding sPAWs, Vets)
   void _applyFilters() {
     setState(() {
       filteredMarkers = allMarkers.where((marker) {
@@ -248,6 +272,10 @@ class _MapScreenState extends State<MapScreen> {
         if (filters['Feeding sPAWs'] == true && snippet == 'FeedingSpawt') {
           return true;
         }
+        // Φίλτρο Vets
+        if (filters['Vets'] == true && snippet == 'Vet') {
+          return true;
+        }
 
         // Αν δεν ταιριάζει σε κανένα ενεργό φίλτρο, το κρύβουμε
         return false;
@@ -257,6 +285,11 @@ class _MapScreenState extends State<MapScreen> {
       if (!filters.values.contains(true)) {
         filteredMarkers = allMarkers;
       }
+
+      // Προσθήκη των vet markers αν το φίλτρο είναι ενεργό
+      if (filters['Vets'] == true) {
+        filteredMarkers.addAll(vetMarkers);
+      }
     });
   }
 
@@ -265,7 +298,7 @@ class _MapScreenState extends State<MapScreen> {
     return FilterChip(
       label: Text(label),
       selected: filters[label] ?? false,
-      onSelected: (selected) {
+      onSelected: (bool selected) {
         setState(() {
           filters[label] = selected;
           _applyFilters();
@@ -276,6 +309,128 @@ class _MapScreenState extends State<MapScreen> {
       labelStyle: TextStyle(
         color: (filters[label] ?? false) ? Colors.white : Colors.purple,
         fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  /// Μέθοδος για να βρούμε κτηνιάτρους χρησιμοποιώντας το Google Places API
+  Future<void> _findVets() async {
+    if (_currentLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Current location not available")),
+      );
+      return;
+    }
+
+    final double latitude = _currentLocation!.latitude;
+    final double longitude = _currentLocation!.longitude;
+    final int radius = 5000; // Ράδιο σε μέτρα (5 km)
+
+    final String url =
+        'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=$latitude,$longitude&radius=$radius&type=veterinarian&key=$googleApiKey';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'OK') {
+          List results = data['results'];
+          Set<Marker> vets = {};
+
+          for (var place in results) {
+            final String placeId = place['place_id'];
+            final String name = place['name'];
+            final double lat = place['geometry']['location']['lat'];
+            final double lng = place['geometry']['location']['lng'];
+            final String address = place['vicinity'] ?? '';
+
+            Marker vetMarker = Marker(
+              markerId: MarkerId('vet_$placeId'),
+              position: LatLng(lat, lng),
+              icon: vetIcon,
+              infoWindow: InfoWindow(
+                title: name,
+                snippet: 'Vet',
+                onTap: () {
+                  // Ανοίγει την τοποθεσία του κτηνιάτρου στο Google Maps για πλοήγηση
+                  _navigateToVet(lat, lng);
+                },
+              ),
+            );
+
+            vets.add(vetMarker);
+          }
+
+          setState(() {
+            vetMarkers = vets;
+            if (filters['Vets'] == true) {
+              filteredMarkers.addAll(vetMarkers);
+            }
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Found ${vets.length} vets')),
+          );
+        } else {
+          print('Places API Error: ${data['status']}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Places API Error: ${data['status']}')),
+          );
+        }
+      } else {
+        print('HTTP Error: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('HTTP Error: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      print('Error finding vets: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error finding vets: $e')),
+      );
+    }
+  }
+
+  /// Μέθοδος για να ανοίξουμε την τοποθεσία του κτηνιάτρου στο Google Maps
+  Future<void> _navigateToVet(double lat, double lng) async {
+    String googleUrl =
+        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving';
+    String appleUrl = 'https://maps.apple.com/?daddr=$lat,$lng&dirflg=d';
+
+    Uri uri;
+    String urlToLaunch;
+
+    if (Platform.isAndroid) {
+      urlToLaunch = googleUrl;
+    } else if (Platform.isIOS) {
+      urlToLaunch = appleUrl;
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Platform not supported')),
+      );
+      return;
+    }
+
+    uri = Uri.parse(urlToLaunch);
+
+    if (await canLaunchUrl(uri)) { // Χρήση canLaunchUrl από url_launcher
+      await launchUrl(uri); // Χρήση launchUrl από url_launcher
+    } else {
+      throw 'Could not launch $urlToLaunch';
+    }
+  }
+
+  /// Δημιουργία κουμπιού "Find Vets"
+  Widget _buildFindVetsButton() {
+    return ElevatedButton.icon(
+      onPressed: _findVets,
+      icon: const Icon(Icons.pets),
+      label: const Text('Find Vets'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.pinkAccent, // Αντικατάσταση του 'primary' με 'backgroundColor'
+        foregroundColor: Colors.white, // Αντικατάσταση του 'onPrimary' με 'foregroundColor'
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
       ),
     );
   }
@@ -305,16 +460,29 @@ class _MapScreenState extends State<MapScreen> {
               myLocationButtonEnabled: true,
               zoomControlsEnabled: true,
               onMapCreated: (controller) => _mapController = controller,
-              // Δεν προσθέτουμε marker onTap — άρα δεν εμφανίζεται address container
               markers: filteredMarkers,
             ),
           ),
 
-
-          // Εικονίδιο Προφίλ πάνω αριστερά (προαιρετικό)
+          // Back Arrow πάνω αριστερά
           Positioned(
             top: 20,
             left: 20,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.pinkAccent),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MenuScreen()),
+                );
+              },
+             ),
+          ),
+
+          // Εικονίδιο Προφίλ πάνω αριστερά, πιο εσωτερικά από το back arrow
+          Positioned(
+            top: 20,
+            left: 70, // Μετακίνηση προς τα δεξιά για πιο εσωτερική θέση
             child: GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -337,9 +505,9 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Τίτλος "Map" (αν θες)
+          // Τίτλος "Map"
           Positioned(
-            top: 100,
+            top: 80, // Προσαρμοσμένο για καλύτερη τοποθέτηση
             left: screenWidth * 0.3,
             right: screenWidth * 0.3,
             child: Container(
@@ -370,7 +538,7 @@ class _MapScreenState extends State<MapScreen> {
 
           // Μπάρα Αναζήτησης 
           Positioned(
-            top: 150,
+            top: 150, // Αυξήθηκε η απόσταση από τον τίτλο του χάρτη
             left: 20,
             right: 20,
             child: Container(
@@ -406,9 +574,17 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
+          // Κουμπί "Find Vets" πάνω από τα Filters
+          Positioned(
+            bottom: 200, // Προσαρμοσμένο για καλύτερη τοποθέτηση
+            left: screenWidth * 0.3,
+            right: screenWidth * 0.3,
+            child: _buildFindVetsButton(),
+          ),
+
           // Tap for Filters (εμφανίζει bottom sheet)
           Positioned(
-            bottom: 80,
+            bottom: 150, // Προσαρμοσμένο για καλύτερη τοποθέτηση
             left: screenWidth * 0.3,
             right: screenWidth * 0.3,
             child: GestureDetector(
@@ -485,8 +661,8 @@ class _MapScreenState extends State<MapScreen> {
                   horizontal: 20,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white70,
-                  borderRadius: BorderRadius.circular(16),
+                  color: Color.fromARGB(255, 200, 200, 200),
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: const Center(
                   child: Text(
@@ -518,6 +694,40 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Κουμπί-βοηθός για τα φίλτρα
+  Widget _buildFilterButton({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.purple : const Color(0xFFF5EAFB),
+          borderRadius: BorderRadius.circular(16.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: isSelected ? Colors.white : Colors.purple,
+          ),
+        ),
       ),
     );
   }
