@@ -131,7 +131,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
 
                           // Ημερομηνία
                           if (date != null)
-                            _buildProfileField('Date: $date'),
+                            _buildProfileField('Date: ${date.substring(0, 10)}'),
                           const SizedBox(height: 30),
 
                           // Περιγραφή

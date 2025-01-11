@@ -133,8 +133,8 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
                         const SizedBox(height: 20),
 
                         // Πεδίο "Date"
-                        _buildProfileField('Date: $date'),
-                        const SizedBox(height: 20),
+                        _buildProfileField('Date: ${date.substring(0, 10)}'),
+                        const SizedBox(height: 30),
 
                         _buildProfileField('Description: $description'), 
                          const SizedBox(height: 20),
