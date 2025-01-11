@@ -9,6 +9,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'menu_screen.dart';
+import 'user_profile_screen.dart';
+import 'bot_screen.dart';
 
 class UploadPawsitiveFriendScreen extends StatefulWidget {
   const UploadPawsitiveFriendScreen({Key? key}) : super(key: key);
@@ -23,12 +26,12 @@ class _UploadPawsitiveFriendScreenState
   File? image;
   DateTime? selectedDate;
   String? location;
-  String? selectedAnimal;    // "DOG" ή "CAT"
-  String? selectedGender;    // "MALE" ή "FEMALE"
-  String? selectedSize;      // "SMALL" / "MEDIUM" / "LARGE"
+  String? selectedAnimal; // "DOG" ή "CAT"
+  String? selectedGender; // "MALE" ή "FEMALE"
+  String? selectedSize; // "SMALL" / "MEDIUM" / "LARGE"
   String? selectedFriendliness; // "FRIENDLY" ή "NOT FRIENDLY"
   String imageUrl = '';
-  String? _documentId; 
+  String? _documentId;
   final TextEditingController descriptionController = TextEditingController();
   double? selectedLatitude;
   double? selectedLongitude;
@@ -55,9 +58,51 @@ class _UploadPawsitiveFriendScreenState
   Future<void> _saveToFirestore() async {
     try {
       // 1. Έλεγχος πεδίων
-      if (image == null || location == null || selectedDate == null) {
+      if (image == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please fill in all the fields")),
+          const SnackBar(content: Text("Please select an image!")),
+        );
+        return;
+      }
+      if (location == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select a location!")),
+        );
+        return;
+      }
+      if (selectedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select a date!")),
+        );
+        return;
+      }
+      if (descriptionController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please enter a description!")),
+        );
+        return;
+      }
+      if (selectedAnimal == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select an animal type (DOG/CAT)!")),
+        );
+        return;
+      }
+      if (selectedGender == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select a gender (MALE/FEMALE)!")),
+        );
+        return;
+      }
+      if (selectedSize == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select a size (SMALL/MEDIUM/LARGE)!")),
+        );
+        return;
+      }
+      if (selectedFriendliness == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select friendliness (FRIENDLY/NOT FRIENDLY)!")),
         );
         return;
       }
@@ -71,7 +116,7 @@ class _UploadPawsitiveFriendScreenState
           image!,
           SettableMetadata(contentType: 'image/jpeg'),
         );
-        final taskSnapshot = await uploadTask;
+        await uploadTask;
         imageUrl = await storageRef.getDownloadURL();
       } catch (e) {
         print("Upload failed: $e");
@@ -86,7 +131,7 @@ class _UploadPawsitiveFriendScreenState
           FirebaseFirestore.instance.collection('pawsitive_friends').doc();
 
       await docRef.set({
-        'type': selectedAnimal,               // "DOG" ή "CAT"
+        'type': selectedAnimal, // "DOG" ή "CAT"
         'image_url': imageUrl,
         'location': location,
         'latitude': selectedLatitude,
@@ -94,9 +139,9 @@ class _UploadPawsitiveFriendScreenState
         'date': selectedDate!.toIso8601String(),
         'description': descriptionController.text,
         'created_at': FieldValue.serverTimestamp(),
-        'gender': selectedGender ?? '',
-        'size': selectedSize ?? '',
-        'friendliness': selectedFriendliness ?? '',
+        'gender': selectedGender!,
+        'size': selectedSize!,
+        'friendliness': selectedFriendliness!,
       });
 
       // Αποθηκεύουμε το id
@@ -114,19 +159,6 @@ class _UploadPawsitiveFriendScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to upload data: $e")),
       );
-    }
-  }
-
-  void _handleGoogleMapsSelection(Uri uri) {
-    if (uri.scheme == 'straypaws') {
-      final lat = uri.queryParameters['lat'];
-      final lng = uri.queryParameters['lng'];
-
-      if (lat != null && lng != null) {
-        setState(() {
-          location = 'Latitude: $lat, Longitude: $lng';
-        });
-      }
     }
   }
 
@@ -212,7 +244,7 @@ class _UploadPawsitiveFriendScreenState
                   ),
                   const SizedBox(height: 30),
 
-                  // Εικόνα
+                  // Επιλογή Εικόνας
                   Container(
                     width: screenWidth * 0.8,
                     height: 150,
@@ -239,7 +271,7 @@ class _UploadPawsitiveFriendScreenState
                   ),
                   const SizedBox(height: 20),
 
-                  // Location
+                  // Επιλογή Τοποθεσίας
                   GestureDetector(
                     onTap: () async {
                       Position? position;
@@ -258,7 +290,8 @@ class _UploadPawsitiveFriendScreenState
                         LocationPermission permission =
                             await Geolocator.checkPermission();
                         if (permission == LocationPermission.denied) {
-                          permission = await Geolocator.requestPermission();
+                          permission =
+                              await Geolocator.requestPermission();
                           if (permission == LocationPermission.denied) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
@@ -330,7 +363,7 @@ class _UploadPawsitiveFriendScreenState
                   ),
                   const SizedBox(height: 20),
 
-                  // Ημερομηνία
+                  // Επιλογή Ημερομηνίας
                   GestureDetector(
                     onTap: () async {
                       final pickedDate = await showDatePicker(
@@ -510,6 +543,7 @@ class _UploadPawsitiveFriendScreenState
                       ),
                     ),
                   ),
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -534,42 +568,77 @@ class _UploadPawsitiveFriendScreenState
             child: IconButton(
               icon: const Icon(Icons.check, color: Colors.green),
               onPressed: () async {
+                // Έλεγχος πεδίων πριν την αποστολή
                 if (image == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Please select an image!")),
                   );
                   return;
-                } else if (location == null) {
+                }
+                if (location == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Please select a location!")),
                   );
                   return;
-                } else if (selectedDate == null) {
+                }
+                if (selectedDate == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Please select a date!")),
                   );
                   return;
-                } else {
-                  await _saveToFirestore();
+                }
+                if (descriptionController.text.trim().isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please enter a description!")),
+                  );
+                  return;
+                }
+                if (selectedAnimal == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please select an animal type (DOG/CAT)!")),
+                  );
+                  return;
+                }
+                if (selectedGender == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please select a gender (MALE/FEMALE)!")),
+                  );
+                  return;
+                }
+                if (selectedSize == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please select a size (SMALL/MEDIUM/LARGE)!")),
+                  );
+                  return;
+                }
+                if (selectedFriendliness == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Please select friendliness (FRIENDLY/NOT FRIENDLY)!")),
+                  );
+                  return;
+                }
 
-                  if (_documentId == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Failed to save data. Please try again."),
-                      ),
-                    );
-                    return;
-                  }
+                await _saveToFirestore();
 
-                  // Μεταφορά στο PawsitiveFriendProfileScreen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          PawsitiveFriendProfileScreen(documentId: _documentId!),
+                if (_documentId == null) {
+                  // Κάτι πήγε στραβά
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content:
+                          Text("Failed to save data. Please try again."),
                     ),
                   );
+                  return;
                 }
+
+                // Μεταφορά στο PawsitiveFriendProfileScreen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        PawsitiveFriendProfileScreen(documentId: _documentId!),
+                  ),
+                );
               },
             ),
           ),
@@ -587,7 +656,8 @@ class _UploadPawsitiveFriendScreenState
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? Colors.purple : const Color(0xFFF5EAFB),
           borderRadius: BorderRadius.circular(16.0),

@@ -305,6 +305,14 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                               );
                               return;
                             }
+                            if (descriptionController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Please enter a description!"),
+                                ),
+                              );
+                              return;
+                            }
 
                             await _saveToFirestore();
 

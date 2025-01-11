@@ -195,6 +195,41 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  /// Μέθοδος αναζήτησης τοποθεσίας
+  Future<void> _searchLocation(String query) async {
+    try {
+      List<Location> locations = await locationFromAddress(query);
+      if (locations.isNotEmpty) {
+        Location location = locations.first;
+        Marker newMarker = Marker(
+          markerId: MarkerId(query),
+          position: LatLng(location.latitude, location.longitude),
+          infoWindow: InfoWindow(title: query),
+        );
+        setState(() {
+          filteredMarkers = {newMarker};
+        });
+        _mapController?.animateCamera(
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: LatLng(location.latitude, location.longitude),
+              zoom: 17.0,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Location not found')),
+        );
+      }
+    } catch (e) {
+      print('Error searching location: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error searching location')),
+      );
+    }
+  }
+
   /// Εφαρμογή φίλτρων (DOG, CAT, Feeding sPAWs)
   void _applyFilters() {
     setState(() {
@@ -275,23 +310,6 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Logo πάνω δεξιά
-          Positioned(
-            top: 20,
-            left: screenWidth - 90,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const MenuScreen()),
-                );
-              },
-              child: Image.asset(
-                'assets/logo/logo.png',
-                height: 50,
-              ),
-            ),
-          ),
 
           // Εικονίδιο Προφίλ πάνω αριστερά (προαιρετικό)
           Positioned(
@@ -350,10 +368,43 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
-          // Μπάρα Αναζήτησης (προαιρετικά)
-          // -- Αν θες το κρατάς, αλλιώς το βγάζεις --
-          // Εδώ σαν παράδειγμα το βγάζω για συντομία
-          // Αν θέλεις, ξαναβάλε το search bar code.
+          // Μπάρα Αναζήτησης 
+          Positioned(
+            top: 150,
+            left: 20,
+            right: 20,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      decoration: const InputDecoration(
+                        hintText: 'Search location',
+                        border: InputBorder.none,
+                      ),
+                      onSubmitted: (query) async {
+                        await _searchLocation(query);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
 
           // Tap for Filters (εμφανίζει bottom sheet)
           Positioned(
@@ -452,7 +503,7 @@ class _MapScreenState extends State<MapScreen> {
           // Bot κάτω δεξιά
           Positioned(
             bottom: 20,
-            left: screenWidth - 80,
+            left: 20,
             child: GestureDetector(
               onTap: () {
                 Navigator.push(
