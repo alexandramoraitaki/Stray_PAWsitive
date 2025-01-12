@@ -25,7 +25,7 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   // Φίλτρα που επιθυμείς: Feeding sPAWs, DOG, CAT, Vets
   final Map<String, bool> filters = {
-    'Feeding sPAWs': false,
+    'Feeding sPAWts': false,
     'DOG': false,
     'CAT': false,
     'Vets': false, // Νέο φίλτρο για Κτηνιάτρους
@@ -49,7 +49,8 @@ class _MapScreenState extends State<MapScreen> {
   late BitmapDescriptor vetIcon; // Για Κτηνιάτρους
 
   // Google Places API Key (Βεβαιώσου ότι το έχεις προσθέσει σωστά)
-  final String googleApiKey = 'YOUR_GOOGLE_PLACES_API_KEY'; // Αντικατάστησε με το πραγματικό σου API Key
+  final String googleApiKey = 'AIzaSyBLFrjFY8vqA5QfQnBgx2xiN2-lSm_tr2k';
+
 
   @override
   void initState() {
@@ -101,7 +102,7 @@ class _MapScreenState extends State<MapScreen> {
         final lat = data['latitude'];
         final lng = data['longitude'];
         final docId = doc.id;
-        final desc = data['description'] ?? 'Feeding sPAW';
+        final desc = data['description'] ?? 'Feeding sPAWt';
 
         if (lat != null && lng != null) {
           // Δημιουργούμε marker
@@ -269,27 +270,26 @@ class _MapScreenState extends State<MapScreen> {
           return true;
         }
         // Φίλτρο Feeding sPAWs
-        if (filters['Feeding sPAWs'] == true && snippet == 'FeedingSpawt') {
+        if (filters['Feeding sPAWts'] == true && snippet == 'FeedingSpawt') {
           return true;
         }
-        // Φίλτρο Vets
-        if (filters['Vets'] == true && snippet == 'Vet') {
-          return true;
-        }
+      
 
         // Αν δεν ταιριάζει σε κανένα ενεργό φίλτρο, το κρύβουμε
         return false;
       }).toSet();
+
+        // Φίλτρο Vets
+        if (filters['Vets'] == true) {
+          filteredMarkers.addAll(vetMarkers);
+        }
 
       // Αν όλα τα φίλτρα είναι off => δείχνουμε όλους τους markers
       if (!filters.values.contains(true)) {
         filteredMarkers = allMarkers;
       }
 
-      // Προσθήκη των vet markers αν το φίλτρο είναι ενεργό
-      if (filters['Vets'] == true) {
-        filteredMarkers.addAll(vetMarkers);
-      }
+      
     });
   }
 
@@ -326,8 +326,8 @@ class _MapScreenState extends State<MapScreen> {
     final double longitude = _currentLocation!.longitude;
     final int radius = 5000; // Ράδιο σε μέτρα (5 km)
 
-    final String url =
-        'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=$latitude,$longitude&radius=$radius&type=veterinarian&key=$googleApiKey';
+  final String url =
+    'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=$latitude,$longitude&radius=$radius&type=veterinary_care&key=$googleApiKey';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -364,10 +364,11 @@ class _MapScreenState extends State<MapScreen> {
 
           setState(() {
             vetMarkers = vets;
-            if (filters['Vets'] == true) {
-              filteredMarkers.addAll(vetMarkers);
-            }
+            filteredMarkers.addAll(vetMarkers);
+            
           });
+
+          _applyFilters();
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Found ${vets.length} vets')),
@@ -395,7 +396,7 @@ class _MapScreenState extends State<MapScreen> {
   /// Μέθοδος για να ανοίξουμε την τοποθεσία του κτηνιάτρου στο Google Maps
   Future<void> _navigateToVet(double lat, double lng) async {
     String googleUrl =
-        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving';
+        'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&type=veterinary_care';
     String appleUrl = 'https://maps.apple.com/?daddr=$lat,$lng&dirflg=d';
 
     Uri uri;

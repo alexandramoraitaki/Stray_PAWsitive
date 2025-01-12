@@ -36,6 +36,31 @@ class _UploadPawsitiveFriendScreenState
   double? selectedLatitude;
   double? selectedLongitude;
 
+  void _showLoadingDialog() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text("Loading..."),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
   /// Μετατροπή συντεταγμένων σε διεύθυνση
   Future<void> _getAddressFromCoordinates(LatLng position) async {
     try {
@@ -261,6 +286,7 @@ class _UploadPawsitiveFriendScreenState
                         IconButton(
                           icon: const Icon(Icons.check, color: Colors.green),
                           onPressed: () async {
+                            
                             // Έλεγχος πεδίων πριν την αποστολή
                             if (image == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -323,6 +349,11 @@ class _UploadPawsitiveFriendScreenState
                               return;
                             }
 
+                             _showLoadingDialog();
+
+
+
+                            try{
                             await _saveToFirestore();
 
                             if (_documentId == null) {
@@ -336,6 +367,11 @@ class _UploadPawsitiveFriendScreenState
                               return;
                             }
 
+                              // Κλείσιμο του loading διαλόγου
+                              Navigator.pop(context);
+
+                           
+
                             // Μεταφορά στο PawsitiveFriendProfileScreen
                             Navigator.push(
                               context,
@@ -344,6 +380,13 @@ class _UploadPawsitiveFriendScreenState
                                     PawsitiveFriendProfileScreen(documentId: _documentId!),
                               ),
                             );
+                            } catch (e) {
+      // Αν υπάρξει κάποιο σφάλμα, κλείνουμε τον διάλογο
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("An error occurred: $e")),
+      );
+    }
                           },
                         ),
                       ],
@@ -773,3 +816,5 @@ class _UploadPawsitiveFriendScreenState
     );
   }
 }
+
+

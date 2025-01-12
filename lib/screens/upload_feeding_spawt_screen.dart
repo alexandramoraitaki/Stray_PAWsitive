@@ -32,6 +32,31 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   double? selectedLatitude;
   double? selectedLongitude;
 
+  void _showLoadingDialog() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text("Loading..."),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
   /// Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
   Future<void> _getAddressFromCoordinates(LatLng position) async {
     try {
@@ -314,6 +339,9 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                               return;
                             }
 
+                            _showLoadingDialog();
+                            try {
+
                             await _saveToFirestore();
 
                             if (_documentId == null) {
@@ -327,6 +355,9 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                               return;
                             }
 
+                            // Κλείσιμο του loading διαλόγου
+                              Navigator.pop(context);
+
                             // Εφόσον σώθηκε, πάμε στο FeedingSpawtProfileScreen
                             Navigator.push(
                               context,
@@ -336,6 +367,13 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                                 ),
                               ),
                             );
+                            } catch (e) {
+      // Αν υπάρξει κάποιο σφάλμα, κλείνουμε τον διάλογο
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("An error occurred: $e")),
+      );
+    }
                           },
                         ),
                       ],

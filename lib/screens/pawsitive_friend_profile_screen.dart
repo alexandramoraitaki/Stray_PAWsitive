@@ -16,6 +16,46 @@ class PawsitiveFriendProfileScreen extends StatefulWidget {
 class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScreen> {
   bool isExpanded = false;
 
+
+  // Νέο: Controller για το σχόλιο
+  final TextEditingController commentController = TextEditingController();
+
+  // Νέο: Μέθοδος για την προσθήκη σχολίου
+  Future<void> _addComment(String text, String docId) async {
+    if (text.trim().isEmpty) return;
+
+    // Παίρνουμε το document
+    final docRef = FirebaseFirestore.instance
+        .collection('pawsitive_friends')
+        .doc(docId);
+
+    // Διαβάζουμε τα τρέχοντα σχόλια
+    final docSnap = await docRef.get();
+    if (!docSnap.exists) return;
+
+    final data = docSnap.data() as Map<String, dynamic>;
+
+    // Παίρνουμε τη λίστα comments (μπορεί να είναι null)
+    List<dynamic> currentComments = data['comments'] ?? [];
+
+    // Προσθέτουμε το νέο σχόλιο
+    // user: "Guest" (ή αν έχεις auth, βάζεις το uid / displayName)
+    // timestamp: DateTime.now().millisecondsSinceEpoch
+    final newComment = {
+      'user': 'Guest', 
+      'text': text,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    };
+
+    currentComments.add(newComment);
+
+    // Κάνουμε update το document
+    await docRef.update({'comments': currentComments});
+
+    // Καθαρίζουμε το textfield
+    commentController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -24,12 +64,12 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
 
     return Scaffold (
       backgroundColor: const Color(0xFFF5F5F5),
-      body: FutureBuilder<DocumentSnapshot>(
+      body: StreamBuilder<DocumentSnapshot>(
         // 1. Φέρνουμε τα δεδομένα από τη συλλογή 'pawsitive_friends'
-        future: FirebaseFirestore.instance
+        stream: FirebaseFirestore.instance
             .collection('pawsitive_friends')
             .doc(documentId)
-            .get(),
+            .snapshots(),
         builder: (context, snapshot) {
           // 2. Έλεγχος κατάστασης
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -44,6 +84,7 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
           final data = snapshot.data!.data() as Map<String, dynamic>;
 
           // 4. Εξαγωγή πεδίων από το data
+
           final imageUrl = data['image_url'];       // Θα έχει το downloadURL
           final location = data['location'];
           final date = data['date'];
@@ -52,7 +93,7 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
           final size = data['size'];
           final friendliness = data['friendliness'];
           final description = data['description'];
-          
+          final List<dynamic> comments = data['comments'] ?? [];
       
       
           return Stack(
@@ -160,51 +201,89 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
                       ),
                       const SizedBox(height: 20),
 
-                        // Περιοχή σχολίων με δυνατότητα swipe up
-                        GestureDetector(
-                          onVerticalDragUpdate: (details) {
-                            if (details.delta.dy < 0) {
-                              // Swipe up
-                              setState(() {
-                                isExpanded = true;
-                              });
-                            } else if (details.delta.dy > 0) {
-                              // Swipe down
-                              setState(() {
-                                isExpanded = false;
-                              });
-                            }
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            width: screenWidth * 0.9,
-                            height: isExpanded ? screenHeight * 0.4 : 100,
-                            padding: const EdgeInsets.all(16.0),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16.0),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                        // -- ΣΧΟΛΙΑ --
+                      const Text(
+                        "Comments",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      
+                      // Εμφάνιση της λίστας των σχολίων
+                      // (χρησιμοποιούμε ListView.builder μέσα σε Container με fixed height,
+                      //  ή shrinkWrap: true)
+                      Container(
+                        width: screenWidth * 0.9,
+                        height: 200, 
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
-                            child: const TextField(
-                              maxLines: null,
-                              expands: true,
-                              decoration: InputDecoration(
-                                hintText: 'Comments',
-                                border: InputBorder.none,
+                          ],
+                        ),
+                        child: comments.isEmpty
+                            ? const Center(
+                                child: Text("No comments yet."),
+                              )
+                            : ListView.builder(
+                                itemCount: comments.length,
+                                itemBuilder: (context, index) {
+                                  final c = comments[index] as Map<String, dynamic>;
+                                  final user = c['user'] ?? 'Unknown';
+                                  final text = c['text'] ?? '';
+                                  final ts = c['timestamp'] ?? 0;
+                                  // Μετατροπή timestamp σε ημερομηνία
+                                  final dateTime = DateTime.fromMillisecondsSinceEpoch(ts);
+                                  final dateStr = 
+                                      "${dateTime.year}-${dateTime.month.toString().padLeft(2,'0')}-${dateTime.day.toString().padLeft(2,'0')} "
+                                      "${dateTime.hour.toString().padLeft(2,'0')}:${dateTime.minute.toString().padLeft(2,'0')}";
+
+                                  return ListTile(
+                                    title: Text("$user: $text"),
+                                    subtitle: Text(dateStr),
+                                  );
+                                },
+                              ),
+                      ),
+
+                      const SizedBox(height: 10),
+                      // Πεδίο εισαγωγής νέου σχολίου
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: commentController,
+                              decoration: const InputDecoration(
+                                hintText: "Add a comment...",
+                                border: OutlineInputBorder(),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                          IconButton(
+                            icon: const Icon(Icons.send, color: Colors.pinkAccent),
+                            onPressed: () async {
+                              // Πατάμε το κουμπί -> προσθήκη σχολίου
+                              await _addComment(commentController.text, documentId);
+                              //setState(() {}); // Για να ανανεωθεί το FutureBuilder
+                            },
+                          ),
+                        ],
+                      ),
+                      // -- ΤΕΛΟΣ ΣΧΟΛΙΩΝ --
+
+                      const SizedBox(height: 40),
+                    ],
                   ),
                 ),
+              ),
 
                   // 2. Τοποθέτησε τα Positioned widgets "πάνω" από το περιεχόμενο
                   Positioned(
