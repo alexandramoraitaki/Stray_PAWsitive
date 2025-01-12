@@ -18,43 +18,7 @@ class _PawsitiveFriendProfileScreenState
     extends State<PawsitiveFriendProfileScreen> {
   bool isExpanded = false;
 
-  // Νέο: Controller για το σχόλιο
-  final TextEditingController commentController = TextEditingController();
-
-  // Νέο: Μέθοδος για την προσθήκη σχολίου
-  Future<void> _addComment(String text, String docId) async {
-    if (text.trim().isEmpty) return;
-
-    // Παίρνουμε το document
-    final docRef =
-        FirebaseFirestore.instance.collection('pawsitive_friends').doc(docId);
-
-    // Διαβάζουμε τα τρέχοντα σχόλια
-    final docSnap = await docRef.get();
-    if (!docSnap.exists) return;
-
-    final data = docSnap.data() as Map<String, dynamic>;
-
-    // Παίρνουμε τη λίστα comments (μπορεί να είναι null)
-    List<dynamic> currentComments = data['comments'] ?? [];
-
-    // Προσθέτουμε το νέο σχόλιο
-    // user: "Guest" (ή αν έχεις auth, βάζεις το uid / displayName)
-    // timestamp: DateTime.now().millisecondsSinceEpoch
-    final newComment = {
-      'user': 'Guest',
-      'text': text,
-      'timestamp': DateTime.now().millisecondsSinceEpoch,
-    };
-
-    currentComments.add(newComment);
-
-    // Κάνουμε update το document
-    await docRef.update({'comments': currentComments});
-
-    // Καθαρίζουμε το textfield
-    commentController.clear();
-  }
+  
 
   // Νέο: Μέθοδος υιοθεσίας
   Future<void> _adoptPet(String docId) async {
@@ -107,7 +71,6 @@ class _PawsitiveFriendProfileScreenState
           // Ανάγνωση του πεδίου "adopted"
           final bool isAdopted = data['adopted'] ?? false;
 
-          final List<dynamic> comments = data['comments'] ?? [];
 
           return Stack(
             children: [
@@ -277,93 +240,6 @@ class _PawsitiveFriendProfileScreenState
                           _buildOptionButton(friendliness ?? ''),
                         ],
                       ),
-                      const SizedBox(height: 20),
-
-
-
-                      
-                      // -- ΣΧΟΛΙΑ --
-                      const Text(
-                        "Comments",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.purple,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Εμφάνιση της λίστας των σχολίων
-                      // (χρησιμοποιούμε ListView.builder μέσα σε Container με fixed height,
-                      //  ή shrinkWrap: true)
-                      Container(
-                        width: screenWidth * 0.9,
-                        height: 200,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16.0),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: comments.isEmpty
-                            ? const Center(
-                                child: Text("No comments yet."),
-                              )
-                            : ListView.builder(
-                                itemCount: comments.length,
-                                itemBuilder: (context, index) {
-                                  final c =
-                                      comments[index] as Map<String, dynamic>;
-                                  final user = c['user'] ?? 'Unknown';
-                                  final text = c['text'] ?? '';
-                                  final ts = c['timestamp'] ?? 0;
-                                  // Μετατροπή timestamp σε ημερομηνία
-                                  final dateTime =
-                                      DateTime.fromMillisecondsSinceEpoch(ts);
-                                  final dateStr =
-                                      "${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} "
-                                      "${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
-
-                                  return ListTile(
-                                    title: Text("$user: $text"),
-                                    subtitle: Text(dateStr),
-                                  );
-                                },
-                              ),
-                      ),
-
-                      const SizedBox(height: 10),
-                      // Πεδίο εισαγωγής νέου σχολίου
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: commentController,
-                              decoration: const InputDecoration(
-                                hintText: "Add a comment...",
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.send,
-                                color: Colors.pinkAccent),
-                            onPressed: () async {
-                              // Πατάμε το κουμπί -> προσθήκη σχολίου
-                              await _addComment(
-                                  commentController.text, documentId);
-                              //setState(() {}); // Για να ανανεωθεί το FutureBuilder
-                            },
-                          ),
-                        ],
-                      ),
-                      // -- ΤΕΛΟΣ ΣΧΟΛΙΩΝ --
-
                       const SizedBox(height: 40),
                     ],
                   ),
