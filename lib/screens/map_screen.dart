@@ -1,4 +1,3 @@
-// map_screen.dart
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -51,7 +50,7 @@ class _MapScreenState extends State<MapScreen> {
   late BitmapDescriptor vetIcon; // Για Κτηνιάτρους
 
   // Google Places API Key (Βεβαιωθείτε ότι το έχετε προσθέσει σωστά)
-  final String googleApiKey = 'YOUR_GOOGLE_PLACES_API_KEY'; // Αντικαταστήστε με το δικό σας API key
+  final String googleApiKey = 'AIzaSyBLFrjFY8vqA5QfQnBgx2xiN2-lSm_tr2k';
 
   @override
   void initState() {

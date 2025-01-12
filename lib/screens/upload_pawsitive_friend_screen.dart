@@ -464,7 +464,7 @@ class _UploadPawsitiveFriendScreenState
                                       PawsitiveFriendProfileScreen(
                                           documentId: _documentId!),
                                 ),
-                                ModalRoute.withName('/map'),
+                                ModalRoute.withName('/map_screen'),
                               );
                             } catch (e) {
                               // Αν υπάρξει κάποιο σφάλμα, κλείνουμε τον διάλογο
