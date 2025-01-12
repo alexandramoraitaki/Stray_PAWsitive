@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'menu_screen.dart';
 import 'user_profile_screen.dart';
 import 'bot_screen.dart';
-import 'comments_section.dart';
 
 class FeedingSpawtProfileScreen extends StatelessWidget {
   final String documentId; // Το ID του εγγράφου στη Firestore
@@ -48,12 +47,8 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   // Θα κάνουμε το περιεχόμενο scrollable με Expanded + SingleChildScrollView
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.only(
-                        left: 16.0,
-                        right: 16.0,
-                        top: 80, // για να έχουμε χώρο πάνω από τα widgets
-                        bottom: 20,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 80.0),
+                      child: Center(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -140,16 +135,14 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                             _buildProfileField('Description: $description'),
                           const SizedBox(height: 30),
 
-                          // Ενότητα Σχολίων
-                          CommentsSection(documentId: documentId),
+                    
                         ],
                       ),
+                    ),
                     ),
                   ),
                 ],
               ),
-
-              // --- UI Elements (Logo, Profile Icon, Back Arrow, Bot) ---
 
               // Εικονίδιο Προφίλ πάνω αριστερά
               Positioned(
@@ -181,7 +174,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
               // Logo πάνω δεξιά
               Positioned(
                 top: 20,
-                left: 310,
+                right: 20,
                 child: GestureDetector(
                   onTap: () {
                     Navigator.pushReplacement(
