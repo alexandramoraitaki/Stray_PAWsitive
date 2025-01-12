@@ -56,6 +56,17 @@ class _PawsitiveFriendProfileScreenState
     commentController.clear();
   }
 
+  // Νέο: Μέθοδος υιοθεσίας
+  Future<void> _adoptPet(String docId) async {
+    final docRef =
+        FirebaseFirestore.instance.collection('pawsitive_friends').doc(docId);
+
+    // Ορίζουμε το adopted = true
+    await docRef.update({'adopted': true});
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -93,6 +104,9 @@ class _PawsitiveFriendProfileScreenState
           final size = data['size'];
           final friendliness = data['friendliness'];
           final description = data['description'];
+          // Ανάγνωση του πεδίου "adopted"
+          final bool isAdopted = data['adopted'] ?? false;
+
           final List<dynamic> comments = data['comments'] ?? [];
 
           return Stack(
@@ -169,6 +183,70 @@ class _PawsitiveFriendProfileScreenState
                         ),
                       const SizedBox(height: 20),
 
+                      if (!isAdopted)
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            // Εμφάνιση παραθύρου επιβεβαίωσης
+                            final shouldAdopt = await showDialog<bool>(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text("Confirm Adoption"),
+                                  content: const Text("Are you sure you want to adopt this pet?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(false); // Ακύρωση
+                                      },
+                                      child: const Text("No"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(true); // Επιβεβαίωση
+                                      },
+                                      child: const Text("Yes"),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+                            // Αν ο χρήστης επιβεβαιώσει
+                            if (shouldAdopt == true) {
+                              await _adoptPet(widget.documentId);
+                            }
+                          },
+                          icon: const Icon(Icons.favorite),
+                          label: const Text("Adopt"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.pinkAccent,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        )
+                      else
+                        // Αν το ζώο είναι ήδη υιοθετημένο, εμφάνιση μηνύματος "Adopted"
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Text(
+                            "Adopted!",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 20),
+
+
                       // Πεδίο "Location"
                       _buildProfileField('Location: $location'),
 
@@ -201,6 +279,9 @@ class _PawsitiveFriendProfileScreenState
                       ),
                       const SizedBox(height: 20),
 
+
+
+                      
                       // -- ΣΧΟΛΙΑ --
                       const Text(
                         "Comments",
