@@ -47,46 +47,18 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   // Θα κάνουμε το περιεχόμενο scrollable με Expanded + SingleChildScrollView
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 80.0),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 80.0),
                       child: Center(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Τίτλος
-                          Container(
-                            width: screenWidth * 0.6,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFE4E1),
-                              borderRadius: BorderRadius.circular(16.0),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'Feeding sPAWt',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-
-                          // Εικόνα
-                          if (imageUrl != null)
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Τίτλος
                             Container(
-                              width: screenWidth * 0.8,
-                              height: 200,
+                              width: screenWidth * 0.6,
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: const Color(0xFFFFE4E1),
                                 borderRadius: BorderRadius.circular(16.0),
                                 boxShadow: [
                                   BoxShadow(
@@ -96,47 +68,75 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16.0),
-                                child: Image.network(
-                                  imageUrl,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder:
-                                      (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.error,
-                                      color: Colors.red,
-                                    );
-                                  },
+                              child: const Center(
+                                child: Text(
+                                  'Feeding sPAWt',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
                                 ),
                               ),
                             ),
-                          const SizedBox(height: 20),
+                            const SizedBox(height: 30),
 
-                          // Location
-                          if (location != null)
-                            _buildProfileField('Location: $location'),
-                          const SizedBox(height: 20),
+                            // Εικόνα
+                            if (imageUrl != null)
+                              Container(
+                                width: screenWidth * 0.8,
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  child: Image.network(
+                                    imageUrl,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return const Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Icon(
+                                        Icons.error,
+                                        color: Colors.red,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 20),
 
-                          // Ημερομηνία
-                          if (date != null)
-                            _buildProfileField(
-                                'Date: ${date.substring(0, 10)}'),
-                          const SizedBox(height: 30),
+                            // Location
+                            if (location != null)
+                              _buildProfileField('Location: $location'),
+                            const SizedBox(height: 20),
 
-                          // Περιγραφή
-                          if (description != null)
-                            _buildProfileField('Description: $description'),
-                          const SizedBox(height: 30),
+                            // Ημερομηνία
+                            if (date != null)
+                              _buildProfileField(
+                                  'Date: ${date.substring(0, 10)}'),
+                            const SizedBox(height: 30),
 
-                    
-                        ],
+                            // Περιγραφή
+                            if (description != null)
+                              _buildProfileField('Description: $description'),
+                            const SizedBox(height: 30),
+                          ],
+                        ),
                       ),
                     ),
                     ),
