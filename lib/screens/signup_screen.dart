@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Πρόσθεσε αυτό το import
-
+import 'package:uuid/uuid.dart';
 import 'menu_screen.dart';
 import 'user_profile_screen.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -23,6 +25,12 @@ class _SignupScreenState extends State<SignupScreen> {
   bool showPassword = false;
   bool showConfirmPassword = false;
 
+  String hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final digest = sha256.convert(bytes); // Χρησιμοποιείς SHA-256 για hashing
+    return digest.toString();
+  }
+
   /// Ελέγχουμε αν υπάρχει ήδη χρήστης με το ίδιο username
   Future<bool> _isUsernameTaken(String username) async {
     final querySnapshot = await FirebaseFirestore.instance
@@ -40,6 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final confirmPassword = confirmPasswordController.text.trim();
     final firstName = firstNameController.text.trim();
     final lastName = lastNameController.text.trim();
+    final hashedPassword = hashPassword(password);
 
     // 1. Έλεγχος για password
     if (password != confirmPassword) {
@@ -76,18 +85,26 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     try {
+      final referralCode = const Uuid().v4(); // Μοναδικός κωδικός παραπομπής
+      final hashedPassword = hashPassword(password);
+
       // 4. Δημιουργία νέου document στη συλλογή users
       await FirebaseFirestore.instance.collection('users').add({
         'username': username,
-        'password': password, // Σε πραγματικό app => κρυπτογράφηση/ hashing
+        'password': hashedPassword, // κρυπτογράφηση/ hashing
         'firstName': firstName,
         'lastName': lastName,
         'createdAt': FieldValue.serverTimestamp(),
+        'animals_reported_count': 0, // Αρχικοποίηση
+        'referrals_count': 0, // Αρχικοποίηση
+        'accomplishments': [], // Κενή λίστα
+        'referral_code': referralCode, // Κωδικός παραπομπής
       });
 
       // 5. Αποθήκευση του username στα SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('current_user', username);
+      await prefs.setString('referral_code', referralCode);
 
       // 6. Μετάβαση στο MenuScreen
       Navigator.pushReplacement(

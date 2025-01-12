@@ -12,6 +12,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'menu_screen.dart';
 import 'user_profile_screen.dart';
 import 'bot_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UploadPawsitiveFriendScreen extends StatefulWidget {
   const UploadPawsitiveFriendScreen({Key? key}) : super(key: key);
@@ -178,6 +179,9 @@ class _UploadPawsitiveFriendScreenState
         _documentId = docRef.id;
       });
 
+      // Κλήση της `_recordPawsitiveFriend` για να ενημερώσει τα accomplishments
+      await _recordPawsitiveFriend();
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Pawsitive Friend uploaded successfully!"),
@@ -225,6 +229,72 @@ class _UploadPawsitiveFriendScreenState
       setState(() {
         image = File(pickedFile.path);
       });
+    }
+  }
+
+  Future<void> _recordPawsitiveFriend() async {
+    final now = DateTime.now();
+    final isNight = now.hour >= 22 || now.hour < 6;
+
+    try {
+      // Λήψη του username από τα SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? currentUsername = prefs.getString('current_user');
+
+      if (currentUsername == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not logged in')),
+        );
+        return;
+      }
+
+      // Αναζήτηση χρήστη με βάση το username
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('username', isEqualTo: currentUsername)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not found')),
+        );
+        return;
+      }
+
+      final userDoc = querySnapshot.docs.first.reference;
+
+      // Ενημέρωση animals_reported_count
+      await userDoc.update({
+        'animals_reported_count': FieldValue.increment(1),
+      });
+
+      // Λήψη δεδομένων χρήστη
+      final userSnapshot = await userDoc.get();
+      final userData = userSnapshot.data();
+
+      // Ενημέρωση PAWsitive Hero
+      if (userData?['animals_reported_count'] >= 3) {
+        if (!(userData?['accomplishments'] ?? []).contains('PAWsitive Hero')) {
+          await userDoc.update({
+            'accomplishments': FieldValue.arrayUnion(['PAWsitive Hero']),
+          });
+        }
+      }
+
+      // Ενημέρωση PAWsitive Patrol για νυχτερινή ώρα
+      if (isNight) {
+        if (!(userData?['accomplishments'] ?? [])
+            .contains('PAWsitive Patrol')) {
+          await userDoc.update({
+            'accomplishments': FieldValue.arrayUnion(['PAWsitive Patrol']),
+          });
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     }
   }
 
