@@ -1,10 +1,11 @@
+// lib/screens/upload_pawsitive_friend_screen.dart
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'pawsitive_friend_profile_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
-import 'google_maps_screen.dart';
+import 'google_maps_screen.dart'; // Σωστή εισαγωγή
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,6 +14,7 @@ import 'menu_screen.dart';
 import 'user_profile_screen.dart';
 import 'bot_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Προσθήκη
 
 class UploadPawsitiveFriendScreen extends StatefulWidget {
   const UploadPawsitiveFriendScreen({Key? key}) : super(key: key);
@@ -160,6 +162,15 @@ class _UploadPawsitiveFriendScreenState
       final docRef =
           FirebaseFirestore.instance.collection('pawsitive_friends').doc();
 
+      // Λήψη του τρέχοντος χρήστη
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("User not authenticated!")),
+        );
+        return;
+      }
+
       await docRef.set({
         'type': selectedAnimal, // "DOG" ή "CAT"
         'image_url': imageUrl,
@@ -172,6 +183,7 @@ class _UploadPawsitiveFriendScreenState
         'gender': selectedGender!,
         'size': selectedSize!,
         'friendliness': selectedFriendliness!,
+        'owner_id': currentUser.uid, // Προσθήκη του owner_id
       });
 
       // Αποθηκεύουμε το id
@@ -452,7 +464,7 @@ class _UploadPawsitiveFriendScreenState
                                       PawsitiveFriendProfileScreen(
                                           documentId: _documentId!),
                                 ),
-                                ModalRoute.withName('/map_screen'),
+                                ModalRoute.withName('/map'),
                               );
                             } catch (e) {
                               // Αν υπάρξει κάποιο σφάλμα, κλείνουμε τον διάλογο
@@ -541,17 +553,19 @@ class _UploadPawsitiveFriendScreenState
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                                content: Text("Failed to get location: $e")),
+                                content:
+                                    Text("Failed to get location: $e")),
                           );
                           return;
                         }
 
+                        // Μετάβαση σε GoogleMapsScreen για επιλογή τοποθεσίας
                         final LatLng? selectedLocation = await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => GoogleMapsScreen(
-                              initialLocation: LatLng(
-                                  position!.latitude, position.longitude),
+                              initialLocation:
+                                  LatLng(position!.latitude, position.longitude),
                             ),
                           ),
                         );
@@ -805,8 +819,7 @@ class _UploadPawsitiveFriendScreenState
                 onPressed: () {
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => MenuScreen()), // Η οθόνη Menu
+                    MaterialPageRoute(builder: (context) => const MenuScreen()),
                     (route) =>
                         false, // Αφαιρεί όλες τις προηγούμενες οθόνες από τη στοίβα
                   );
@@ -862,9 +875,9 @@ class _UploadPawsitiveFriendScreenState
         ),
       ),
     );
-  }
+  } // Κλείσιμο της μεθόδου build
 
-  /// Κουμπί-βοηθός για τα φίλτρα
+  /// Μέθοδος για τα κουμπιά επιλογών
   Widget _buildFilterButton({
     required String label,
     required bool isSelected,
