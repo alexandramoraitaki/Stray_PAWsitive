@@ -1,9 +1,12 @@
+// pawsitive_friend_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'map_screen.dart';
 import 'user_profile_screen.dart';
 import 'bot_screen.dart';
 import 'menu_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Προσθήκη
+import 'package:firebase_storage/firebase_storage.dart'; // Προσθήκη
 
 class PawsitiveFriendProfileScreen extends StatefulWidget {
   final String documentId;
@@ -17,24 +20,53 @@ class PawsitiveFriendProfileScreen extends StatefulWidget {
 class _PawsitiveFriendProfileScreenState
     extends State<PawsitiveFriendProfileScreen> {
   bool isExpanded = false;
+  bool isOwner = false; // Νέο πεδίο για να ελέγξει αν ο χρήστης είναι ο ιδιοκτήτης
 
-  
+  // Μέθοδος Διαγραφής της Καταγραφής
+  Future<void> _deletePawsitiveFriend(String docId, String imageUrl) async {
+    try {
+      // 1. Διαγραφή της εικόνας από το Firebase Storage
+      if (imageUrl.isNotEmpty) {
+        Reference storageRef = FirebaseStorage.instance.refFromURL(imageUrl);
+        await storageRef.delete();
+      }
+
+
+      // 2. Διαγραφή του εγγράφου από το Firestore
+      await FirebaseFirestore.instance
+          .collection('pawsitive_friends')
+          .doc(docId)
+          .delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Pawsitive Friend deleted successfully!")),
+      );
+
+      // Μεταφορά στο MenuScreen ή άλλο κατάλληλο screen
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const MenuScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      print("Error deleting Pawsitive Friend: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to delete: $e")),
+      );
+    }
+  }
 
   // Νέο: Μέθοδος υιοθεσίας
   Future<void> _adoptPet(String docId) async {
     final docRef =
         FirebaseFirestore.instance.collection('pawsitive_friends').doc(docId);
-
     // Ορίζουμε το adopted = true
     await docRef.update({'adopted': true});
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final documentId = widget.documentId;
 
     return Scaffold(
@@ -59,7 +91,6 @@ class _PawsitiveFriendProfileScreenState
           final data = snapshot.data!.data() as Map<String, dynamic>;
 
           // 4. Εξαγωγή πεδίων από το data
-
           final imageUrl = data['image_url']; // Θα έχει το downloadURL
           final location = data['location'];
           final date = data['date'];
@@ -70,7 +101,15 @@ class _PawsitiveFriendProfileScreenState
           final description = data['description'];
           // Ανάγνωση του πεδίου "adopted"
           final bool isAdopted = data['adopted'] ?? false;
+          final String ownerId = data['owner_id']; // Λήψη του owner_id
 
+          // Λήψη του τρέχοντος χρήστη
+          final currentUser = FirebaseAuth.instance.currentUser;
+          if (currentUser != null && currentUser.uid == ownerId) {
+            isOwner = true;
+          } else {
+            isOwner = false;
+          }
 
           return Stack(
             children: [
@@ -173,7 +212,6 @@ class _PawsitiveFriendProfileScreenState
                                 );
                               },
                             );
-
                             // Αν ο χρήστης επιβεβαιώσει
                             if (shouldAdopt == true) {
                               await _adoptPet(widget.documentId);
@@ -206,9 +244,72 @@ class _PawsitiveFriendProfileScreenState
                             ),
                           ),
                         ),
-
                       const SizedBox(height: 20),
 
+
+                      // Κουμπί Διαγραφής (εμφανίζεται μόνο αν ο χρήστης είναι ο ιδιοκτήτης)
+                      if (isOwner)
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text("Confirm Deletion"),
+                                  content: const Text(
+                                      "Are you sure you want to delete this Pawsitive Friend?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(false);
+                                      },
+                                      child: const Text("Cancel"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop(true);
+                                      },
+                                      child: const Text("Delete"),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+
+                            if (confirm == true) {
+                              _deletePawsitiveFriend(
+                                  widget.documentId, data['image_url']);
+                            }
+                          },
+                          icon: const Icon(Icons.delete),
+                          label: const Text("Delete Record"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        )
+                      else if (isAdopted)
+                        // Αν το ζώο είναι ήδη υιοθετημένο, εμφάνιση μηνύματος "Adopted"
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Text(
+                            "Adopted!",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 20),
 
                       // Πεδίο "Location"
                       _buildProfileField('Location: $location'),
@@ -312,8 +413,7 @@ class _PawsitiveFriendProfileScreenState
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => const BotScreen()),
+                      MaterialPageRoute(builder: (context) => const BotScreen()),
                     );
                   },
                   child: Image.asset(
@@ -329,7 +429,9 @@ class _PawsitiveFriendProfileScreenState
     );
   }
 
-  // Μέθοδος για πεδίο Location, Date
+
+
+  /// Μέθοδος για πεδίο Location, Date
   Widget _buildProfileField(String label) {
     return Container(
       width: 300,
@@ -356,7 +458,7 @@ class _PawsitiveFriendProfileScreenState
     );
   }
 
-  // Μέθοδος για τα κουμπιά επιλογών
+  /// Μέθοδος για τα κουμπιά επιλογών
   Widget _buildOptionButton(String label) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(

@@ -139,6 +139,7 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    ),
                   ),
                 ],
               ),

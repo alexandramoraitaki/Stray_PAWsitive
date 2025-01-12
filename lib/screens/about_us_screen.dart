@@ -116,15 +116,13 @@ class AboutUsScreen extends StatelessWidget {
                     padding: EdgeInsets.all(16.0),
                     child: SingleChildScrollView(
                       child: Text(
-                        '''Welcome to Stray PAWsitive! 🐾
+                        '''Καλώς ήρθες στη Stray PAWsitive! 🐾
 
-We are a group of students with a deep love for animals and a shared vision: to create a world where every stray animal receives the care and love it truly deserves!
-The idea for our app was born from our heartfelt desire to make a meaningful difference for these animals. Seeing them wander the streets, searching for food, warmth, and a little affection, we felt that we couldn’t just stand by and watch. We knew we couldn’t help them all, but we had the power to spark a change!
-That’s how Stray PAWsitive was created: an app that brings together the community of animal lovers for a common goal – to give stray animals a voice and a chance for a better future!
-
-We hope Stray PAWsitive will also be a source of inspiration for you. Together, we can make a difference!
-
-Thank you for being here. Let’s create something beautiful, together!''',
+Είμαστε μια ομάδα φοιτητών με μεγάλη αγάπη για τα ζώα και ένα κοινό όραμα: να δημιουργήσουμε έναν κόσμο όπου κάθε αδέσποτο ζώο θα έχει τη φροντίδα και την αγάπη που του αξίζει! 
+Η ιδέα για την εφαρμογή μας γεννήθηκε από τη βαθιά επιθυμία μας να κάνουμε για αυτά κάτι ουσιαστικό. Βλέποντάς τα να περιπλανιούνται στους δρόμους, αναζητώντας φαγητό, ζεστασιά και λίγη στοργή, νιώσαμε ότι δεν μπορούσαμε να μείνουμε απλοί παρατηρητές. Γνωρίζαμε ότι δεν μπορούσαμε να τα βοηθήσουμε όλα, αλλά είχαμε τη δύναμη να ξεκινήσουμε μια αλλαγή!
+Έτσι, δημιουργήσαμε τη Stray PAWsitive: μια εφαρμογή που ενώνει την κοινότητα των φιλόζωων για έναν κοινό σκοπό – να δώσουμε στα αδέσποτα μια φωνή και μια ευκαιρία για ένα καλύτερο μέλλον!
+Ελπίζουμε η Stray PAWsitive να γίνει και για σένα πηγή έμπνευσης, όπως ήταν για εμάς το ταξίδι της δημιουργίας της! Μαζί, μπορούμε να κάνουμε τη διαφορά!
+Σ’ ευχαριστούμε που είσαι εδώ. Ας κάνουμε κάτι όμορφο, παρέα!''',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.normal,

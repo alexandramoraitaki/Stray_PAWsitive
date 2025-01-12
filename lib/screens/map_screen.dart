@@ -12,6 +12,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'pawsitive_friend_profile_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart'; // Προσθήκη του url_launcher
+import 'package:firebase_storage/firebase_storage.dart'; // Προσθήκη για την διαγραφή εικόνων
 
 class MapScreen extends StatefulWidget {
   final LatLng? currentLocation;
@@ -48,9 +49,8 @@ class _MapScreenState extends State<MapScreen> {
   late BitmapDescriptor catIcon; // Για CAT
   late BitmapDescriptor vetIcon; // Για Κτηνιάτρους
 
-  // Google Places API Key (Βεβαιώσου ότι το έχεις προσθέσει σωστά)
+  // Google Places API Key (Βεβαιωθείτε ότι το έχετε προσθέσει σωστά)
   final String googleApiKey = 'AIzaSyBLFrjFY8vqA5QfQnBgx2xiN2-lSm_tr2k';
-
 
   @override
   void initState() {
@@ -136,7 +136,7 @@ class _MapScreenState extends State<MapScreen> {
         final lng = data['longitude'];
         final docId = doc.id;
         final desc = data['description'] ?? 'Pawsitive Friend';
-        final type = data['type']; // "DOG" ή "CAT" (σύμφωνα με upload)
+        final type = data['type']; // "DOG" ή "CAT" (σύμφωνα με upload
 
         if (lat != null && lng != null && type != null) {
           // Επιλέγουμε icon και snippet με βάση το type
@@ -273,23 +273,20 @@ class _MapScreenState extends State<MapScreen> {
         if (filters['Feeding sPAWts'] == true && snippet == 'FeedingSpawt') {
           return true;
         }
-      
 
         // Αν δεν ταιριάζει σε κανένα ενεργό φίλτρο, το κρύβουμε
         return false;
       }).toSet();
 
-        // Φίλτρο Vets
-        if (filters['Vets'] == true) {
-          filteredMarkers.addAll(vetMarkers);
-        }
+      // Φίλτρο Vets
+      if (filters['Vets'] == true) {
+        filteredMarkers.addAll(vetMarkers);
+      }
 
       // Αν όλα τα φίλτρα είναι off => δείχνουμε όλους τους markers
       if (!filters.values.contains(true)) {
         filteredMarkers = allMarkers;
       }
-
-      
     });
   }
 
@@ -326,8 +323,8 @@ class _MapScreenState extends State<MapScreen> {
     final double longitude = _currentLocation!.longitude;
     final int radius = 5000; // Ράδιο σε μέτρα (5 km)
 
-  final String url =
-    'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=$latitude,$longitude&radius=$radius&type=veterinary_care&key=$googleApiKey';
+    final String url =
+        'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=$latitude,$longitude&radius=$radius&type=veterinary_care&key=$googleApiKey';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -365,7 +362,6 @@ class _MapScreenState extends State<MapScreen> {
           setState(() {
             vetMarkers = vets;
             filteredMarkers.addAll(vetMarkers);
-            
           });
 
           _applyFilters();
@@ -477,7 +473,7 @@ class _MapScreenState extends State<MapScreen> {
                   MaterialPageRoute(builder: (context) => const MenuScreen()),
                 );
               },
-             ),
+            ),
           ),
 
           // Εικονίδιο Προφίλ πάνω αριστερά, πιο εσωτερικά από το back arrow
