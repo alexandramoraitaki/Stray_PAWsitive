@@ -115,24 +115,25 @@ class GeneralInfoScreen extends StatelessWidget {
                     ),
                     child: const SingleChildScrollView(
                       child: Text(
-                        'Οι σκύλοι είναι οι πιο πιστοί μας φίλοι και χρειάζονται τη σωστή φροντίδα για να ζουν χαρούμενοι και υγιείς. '
-                        'Αν συναντήσετε ένα αδέσποτο σκυλάκι στο δρόμο, να θυμάστε ότι μπορεί να είναι φοβισμένο ή μπερδεμένο. '
-                        'Προσεγγίστε το αργά, αφήστε το να σας μυρίσει και δείξτε του ότι δεν αποτελείτε απειλή. '
-                        'Πάντα να έχετε μαζί σας λίγη υπομονή – και φυσικά λίγο φρέσκο νερό! 💧\n\n'
-                        'Όσον αφορά την τροφή, αν δεν έχετε σκυλοτροφή, μην ανησυχείτε! Ένα κομματάκι ψωμί, λίγο ρύζι, '
-                        'ή ακόμη και καρότα και μήλα (χωρίς κουκούτσια) είναι εξαιρετικές και ασφαλείς επιλογές! 🥕🍎\n\n'
-                        'Προσοχή! Αποφύγετε εντελώς τη σοκολάτα, τα σταφύλια, τον καφέ, το αλκοόλ ή οποιοδήποτε τρόφιμο '
-                        'περιέχει ζύμη με μαγιά, καθώς όλα αυτά είναι τοξικά για τους μικρούς μας φίλους!\n\n'
-                        'Αν το σκυλάκι φαίνεται τραυματισμένο, είναι σημαντικό να δράσετε άμεσα. '
-                        'Επικοινωνήστε με έναν κτηνίατρο ή κάποιον φορέα φιλοζωίας (μπορείτε να βρείτε σχετικές πληροφορίες '
-                        'στον χάρτη της εφαρμογής μας). Θυμηθείτε επίσης ότι η ουρά του δεν είναι πάντα ένδειξη χαράς – '
-                        'μπορεί να δείχνει άγχος ή φόβο, οπότε προσεγγίστε το με προσοχή. 🐶\n\n'
-                        'Δείξτε του αγάπη, δώστε του λίγο χρόνο και φροντίδα, κι ίσως κερδίσετε έναν φίλο για μια ζωή! 💕',
+                        'Dogs are our most loyal friends and need the right care to live happy and healthy lives. '
+                        'If you encounter a stray dog on the street, remember that it might be scared or confused. '
+                        'Approach it slowly, let it sniff you, and show it that you’re not a threat. '
+                        'Always have a little patience – and, of course, some fresh water! 💧\n\n'
+                        'If you don’t have dog food, don’t worry! A piece of bread, some rice, '
+                        'or even carrots and apples (without seeds) are excellent and safe options! 🥕🍎\n\n'
+                        'Caution! Completely avoid chocolate, grapes, coffee, alcohol, or any food containing yeast dough, '
+                        'as these are toxic for our furry friends!\n\n'
+                        'If the dog seems injured, it’s important to act quickly. '
+                        'Contact a veterinarian or an animal welfare organization (you can find relevant information '
+                        'on the map in our app). Also, remember that a wagging tail isn’t always a sign of happiness – '
+                        'it could indicate anxiety or fear, so approach with care. 🐶\n\n'
+                        'Show it love, give it some time and care, and you might just gain a friend for life! 💕',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.normal,
                           color: Colors.black54,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),
@@ -176,28 +177,26 @@ class GeneralInfoScreen extends StatelessWidget {
                     ),
                     child: const SingleChildScrollView(
                       child: Text(
-                        'Οι γάτες είναι οι αριστοκράτισσες του ζωικού βασιλείου – γεμάτες μυστήριο και γοητεία. '
-                        '🐾 Αν συναντήσετε μια αδέσποτη γάτα, θυμηθείτε πως κάθε ζωάκι έχει τη δική του προσωπικότητα. '
-                        'Αφήστε την να πάρει τον χρόνο της και να κάνει εκείνη την πρώτη κίνηση για να σας πλησιάσει! 💕\n\n'
-                        'Οι γάτες είναι λάτρεις της πρωτεΐνης! Αν έχετε λίγη γατοτροφή ή μαγειρεμένο κοτόπουλο '
-                        '(χωρίς μπαχαρικά και πρόσθετα), σίγουρα θα τραβήξετε την προσοχή τους! Αν αυτά δεν είναι διαθέσιμα, '
-                        'εξίσου ασφαλείς και νόστιμες επιλογές είναι λίγο ρύζι, ψίχουλα από ψωμί, μια φέτα ζαμπόν χωρίς πρόσθετα '
-                        'ή ακόμη και λίγο βρασμένο αυγό (χωρίς το κέλυφος). Όλα αυτά είναι τροφές που μπορείτε να βρείτε εύκολα '
-                        'στο σπίτι σας ή στο κοντινότερο σούπερ μάρκετ!\n\n'
-                        'Προσοχή! Αποφύγετε εντελώς το γάλα, όσο κι αν οι γάτες στα κινούμενα σχέδια το λατρεύουν – '
-                        'πολλές γατούλες έχουν δυσανεξία στη λακτόζη! Αντίθετα, ένα μπολάκι με φρέσκο νερό είναι η καλύτερη '
-                        'επιλογή για να τις κρατήσετε ενυδατωμένες! 💧\n\n'
-                        'Αν η γατούλα φαίνεται τραυματισμένη ή φοβισμένη, δοκιμάστε να τη σκεπάσετε απαλά με ένα ύφασμα '
-                        'για να την ηρεμήσετε. Έτσι θα νιώσει πιο ασφαλής. Στη συνέχεια, επικοινωνήστε με έναν κτηνίατρο '
-                        'ή κάποιον οργανισμό φιλοζωίας (ο χάρτης της εφαρμογής μας είναι εδώ για να σας βοηθήσει!). 😺\n\n'
-                        'Οι γάτες αγαπούν την ανεξαρτησία τους, αλλά αν κερδίσετε την εμπιστοσύνη τους, θα βρείτε έναν '
-                        'ξεχωριστό φίλο που θα σας προσφέρει ατελείωτες στιγμές στοργής – και, φυσικά, λίγη από τη '
-                        'χαρακτηριστική «γάτο-υπεροψία» τους! 💖',
+                        'Cats are the aristocrats of the animal kingdom – full of mystery and charm. 🐾 '
+                        'If you come across a stray cat, remember that every little creature has its own personality. '
+                        'Give them time and let them make the first move to approach you! 💕\n\n'
+                        'Cats are protein lovers! If you have some cat food or cooked chicken (without spices or additives), '
+                        'you’re sure to grab their attention! If these aren’t available, equally safe and tasty options include '
+                        'a bit of rice, breadcrumbs, a slice of plain ham, or even a little boiled egg (without the shell). '
+                        'These are foods you can easily find at home or at your nearest supermarket!\n\n'
+                        'Caution! Avoid giving them milk, no matter how much cartoon cats seem to love it – '
+                        'many cats are lactose intolerant! Instead, a bowl of fresh water is the best way to keep them hydrated! 💧\n\n'
+                        'If the cat appears injured or scared, try gently covering them with a cloth to help calm them. '
+                        'This will make them feel safer. Then, contact a vet or an animal welfare organization '
+                        '(the map in our app is here to help you!). 😺\n\n'
+                        'Cats love their independence, but if you earn their trust, you’ll find a unique companion who will offer you '
+                        'endless moments of affection – and, of course, a little of their signature “cat superiority”! 💖',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.normal,
                           color: Colors.black54,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ),
@@ -219,8 +218,8 @@ class GeneralInfoScreen extends StatelessWidget {
                       ],
                     ),
                     child: const Text(
-                      'Δεν βρήκατε αυτό που ψάχνατε; Μην διστάσετε να συνομιλήσετε με το μποτάκι μας! '
-                      'Είναι πάντα έτοιμο να σας καθοδηγήσει με εξειδικευμένες πληροφορίες για τη φροντίδα των φίλων μας. 🐾💬',
+                      'Didn’t find what you were looking for? Don’t hesitate to chat with our little bot! '
+                      'It’s always ready to guide you with specialized information about caring for our furry friends. 🐾💬',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.normal,

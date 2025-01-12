@@ -33,29 +33,29 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
   double? selectedLongitude;
 
   void _showLoadingDialog() {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              CircularProgressIndicator(),
-              SizedBox(width: 20),
-              Text("Loading..."),
-            ],
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
           ),
-        ),
-      );
-    },
-  );
-}
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Loading..."),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   /// Μέθοδος για μετατροπή γεωγραφικού πλάτους και μήκους σε διεύθυνση
   Future<void> _getAddressFromCoordinates(LatLng position) async {
@@ -103,7 +103,7 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Image upload failed: $e")),
         );
-        return; 
+        return;
       }
 
       // 2. Αποθήκευση στο Firestore
@@ -206,7 +206,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                   onTap: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => const MenuScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const MenuScreen()),
                     );
                   },
                   child: Image.asset(
@@ -223,9 +224,12 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.pinkAccent),
                   onPressed: () {
-                    Navigator.pushReplacement(
+                    Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (context) => const MenuScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const MenuScreen()),
+                      (route) =>
+                          false, // Αφαιρεί όλες τις προηγούμενες οθόνες από τη στοίβα
                     );
                   },
                 ),
@@ -239,7 +243,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const UserProfileScreen()),
                     );
                   },
                   child: Container(
@@ -341,39 +346,40 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
 
                             _showLoadingDialog();
                             try {
+                              await _saveToFirestore();
 
-                            await _saveToFirestore();
+                              if (_documentId == null) {
+                                // Κάτι πήγε στραβά
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        "Failed to save data. Please try again."),
+                                  ),
+                                );
+                                return;
+                              }
 
-                            if (_documentId == null) {
-                              // Κάτι πήγε στραβά
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                      Text("Failed to save data. Please try again."),
-                                ),
-                              );
-                              return;
-                            }
-
-                            // Κλείσιμο του loading διαλόγου
+                              // Κλείσιμο του loading διαλόγου
                               Navigator.pop(context);
 
-                            // Εφόσον σώθηκε, πάμε στο FeedingSpawtProfileScreen
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FeedingSpawtProfileScreen(
-                                  documentId: _documentId!,
+                              // Εφόσον σώθηκε, πάμε στο FeedingSpawtProfileScreen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      FeedingSpawtProfileScreen(
+                                    documentId: _documentId!,
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
                             } catch (e) {
-      // Αν υπάρξει κάποιο σφάλμα, κλείνουμε τον διάλογο
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occurred: $e")),
-      );
-    }
+                              // Αν υπάρξει κάποιο σφάλμα, κλείνουμε τον διάλογο
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text("An error occurred: $e")),
+                              );
+                            }
                           },
                         ),
                       ],
@@ -450,7 +456,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                           position = await Geolocator.getCurrentPosition();
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Failed to get location: $e")),
+                            SnackBar(
+                                content: Text("Failed to get location: $e")),
                           );
                           return;
                         }
@@ -460,8 +467,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => GoogleMapsScreen(
-                              initialLocation:
-                                  LatLng(position!.latitude, position.longitude),
+                              initialLocation: LatLng(
+                                  position!.latitude, position.longitude),
                             ),
                           ),
                         );
@@ -580,7 +587,8 @@ class _UploadFeedingSpawtScreenState extends State<UploadFeedingSpawtScreen> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const BotScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const BotScreen()),
                     );
                   },
                   child: Image.asset(

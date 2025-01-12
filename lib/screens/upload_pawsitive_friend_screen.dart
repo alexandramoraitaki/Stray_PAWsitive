@@ -37,29 +37,29 @@ class _UploadPawsitiveFriendScreenState
   double? selectedLongitude;
 
   void _showLoadingDialog() {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              CircularProgressIndicator(),
-              SizedBox(width: 20),
-              Text("Loading..."),
-            ],
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10.0),
           ),
-        ),
-      );
-    },
-  );
-}
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Loading..."),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   /// Μετατροπή συντεταγμένων σε διεύθυνση
   Future<void> _getAddressFromCoordinates(LatLng position) async {
@@ -109,33 +109,37 @@ class _UploadPawsitiveFriendScreenState
       }
       if (selectedAnimal == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select an animal type (DOG/CAT)!")),
+          const SnackBar(
+              content: Text("Please select an animal type (DOG/CAT)!")),
         );
         return;
       }
       if (selectedGender == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select a gender (MALE/FEMALE)!")),
+          const SnackBar(
+              content: Text("Please select a gender (MALE/FEMALE)!")),
         );
         return;
       }
       if (selectedSize == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select a size (SMALL/MEDIUM/LARGE)!")),
+          const SnackBar(
+              content: Text("Please select a size (SMALL/MEDIUM/LARGE)!")),
         );
         return;
       }
       if (selectedFriendliness == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select friendliness (FRIENDLY/NOT FRIENDLY)!")),
+          const SnackBar(
+              content:
+                  Text("Please select friendliness (FRIENDLY/NOT FRIENDLY)!")),
         );
         return;
       }
 
       // 2. Ανεβάζουμε εικόνα στο Storage
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('pawsitive_friends/${DateTime.now().millisecondsSinceEpoch}.jpg');
+      final storageRef = FirebaseStorage.instance.ref().child(
+          'pawsitive_friends/${DateTime.now().millisecondsSinceEpoch}.jpg');
       try {
         final uploadTask = storageRef.putFile(
           image!,
@@ -235,14 +239,16 @@ class _UploadPawsitiveFriendScreenState
           children: [
             // Κύριο περιεχόμενο με scroll για μικρότερες οθόνες
             SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 100), // Προσθήκη bottom padding
+              padding:
+                  const EdgeInsets.only(bottom: 100), // Προσθήκη bottom padding
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 100), // Αυξημένο spacing για αποφυγή επικάλυψης
+                    const SizedBox(
+                        height: 100), // Αυξημένο spacing για αποφυγή επικάλυψης
 
                     // Τίτλος "Registration" με κουμπιά "Χ" και "✓"
                     Row(
@@ -286,7 +292,6 @@ class _UploadPawsitiveFriendScreenState
                         IconButton(
                           icon: const Icon(Icons.check, color: Colors.green),
                           onPressed: () async {
-                            
                             // Έλεγχος πεδίων πριν την αποστολή
                             if (image == null) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -312,7 +317,8 @@ class _UploadPawsitiveFriendScreenState
                             if (descriptionController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text("Please enter a description!")),
+                                    content:
+                                        Text("Please enter a description!")),
                               );
                               return;
                             }
@@ -349,44 +355,43 @@ class _UploadPawsitiveFriendScreenState
                               return;
                             }
 
-                             _showLoadingDialog();
+                            _showLoadingDialog();
 
+                            try {
+                              await _saveToFirestore();
 
-
-                            try{
-                            await _saveToFirestore();
-
-                            if (_documentId == null) {
-                              // Κάτι πήγε στραβά
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content:
-                                      Text("Failed to save data. Please try again."),
-                                ),
-                              );
-                              return;
-                            }
+                              if (_documentId == null) {
+                                // Κάτι πήγε στραβά
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        "Failed to save data. Please try again."),
+                                  ),
+                                );
+                                return;
+                              }
 
                               // Κλείσιμο του loading διαλόγου
                               Navigator.pop(context);
 
-                           
-
-                            // Μεταφορά στο PawsitiveFriendProfileScreen
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    PawsitiveFriendProfileScreen(documentId: _documentId!),
-                              ),
-                            );
+                              // Μεταφορά στο PawsitiveFriendProfileScreen
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      PawsitiveFriendProfileScreen(
+                                          documentId: _documentId!),
+                                ),
+                                ModalRoute.withName('/map_screen'),
+                              );
                             } catch (e) {
-      // Αν υπάρξει κάποιο σφάλμα, κλείνουμε τον διάλογο
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occurred: $e")),
-      );
-    }
+                              // Αν υπάρξει κάποιο σφάλμα, κλείνουμε τον διάλογο
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text("An error occurred: $e")),
+                              );
+                            }
                           },
                         ),
                       ],
@@ -465,7 +470,8 @@ class _UploadPawsitiveFriendScreenState
                           position = await Geolocator.getCurrentPosition();
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Failed to get location: $e")),
+                            SnackBar(
+                                content: Text("Failed to get location: $e")),
                           );
                           return;
                         }
@@ -474,8 +480,8 @@ class _UploadPawsitiveFriendScreenState
                           context,
                           MaterialPageRoute(
                             builder: (context) => GoogleMapsScreen(
-                              initialLocation:
-                                  LatLng(position!.latitude, position.longitude),
+                              initialLocation: LatLng(
+                                  position!.latitude, position.longitude),
                             ),
                           ),
                         );
@@ -727,7 +733,13 @@ class _UploadPawsitiveFriendScreenState
               child: IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.pinkAccent),
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MenuScreen()), // Η οθόνη Menu
+                    (route) =>
+                        false, // Αφαιρεί όλες τις προηγούμενες οθόνες από τη στοίβα
+                  );
                 },
               ),
             ),
@@ -791,8 +803,7 @@ class _UploadPawsitiveFriendScreenState
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? Colors.purple : const Color(0xFFF5EAFB),
           borderRadius: BorderRadius.circular(16.0),
@@ -816,5 +827,3 @@ class _UploadPawsitiveFriendScreenState
     );
   }
 }
-
-

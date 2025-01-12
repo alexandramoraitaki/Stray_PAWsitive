@@ -10,12 +10,13 @@ class PawsitiveFriendProfileScreen extends StatefulWidget {
   const PawsitiveFriendProfileScreen({super.key, required this.documentId});
 
   @override
-  State<PawsitiveFriendProfileScreen> createState() => _PawsitiveFriendProfileScreenState();
+  State<PawsitiveFriendProfileScreen> createState() =>
+      _PawsitiveFriendProfileScreenState();
 }
 
-class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScreen> {
+class _PawsitiveFriendProfileScreenState
+    extends State<PawsitiveFriendProfileScreen> {
   bool isExpanded = false;
-
 
   // Νέο: Controller για το σχόλιο
   final TextEditingController commentController = TextEditingController();
@@ -25,9 +26,8 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
     if (text.trim().isEmpty) return;
 
     // Παίρνουμε το document
-    final docRef = FirebaseFirestore.instance
-        .collection('pawsitive_friends')
-        .doc(docId);
+    final docRef =
+        FirebaseFirestore.instance.collection('pawsitive_friends').doc(docId);
 
     // Διαβάζουμε τα τρέχοντα σχόλια
     final docSnap = await docRef.get();
@@ -42,7 +42,7 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
     // user: "Guest" (ή αν έχεις auth, βάζεις το uid / displayName)
     // timestamp: DateTime.now().millisecondsSinceEpoch
     final newComment = {
-      'user': 'Guest', 
+      'user': 'Guest',
       'text': text,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     };
@@ -62,7 +62,7 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
     final screenHeight = MediaQuery.of(context).size.height;
     final documentId = widget.documentId;
 
-    return Scaffold (
+    return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: StreamBuilder<DocumentSnapshot>(
         // 1. Φέρνουμε τα δεδομένα από τη συλλογή 'pawsitive_friends'
@@ -85,7 +85,7 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
 
           // 4. Εξαγωγή πεδίων από το data
 
-          final imageUrl = data['image_url'];       // Θα έχει το downloadURL
+          final imageUrl = data['image_url']; // Θα έχει το downloadURL
           final location = data['location'];
           final date = data['date'];
           final animal = data['type'];
@@ -94,47 +94,47 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
           final friendliness = data['friendliness'];
           final description = data['description'];
           final List<dynamic> comments = data['comments'] ?? [];
-      
-      
+
           return Stack(
-              children: [
-                // 1. Βάλε το SingleChildScrollView πρώτο, ώστε να είναι "κάτω"
-                SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 80),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Τίτλος "Pawsitive Friend Profile"
-                        Container(
-                          width: screenWidth * 0.6,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFFFE4E1),
-                            borderRadius: BorderRadius.circular(16.0),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Center(
-                            child: Text(
-                              'Pawsitive Friend Profile',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
+            children: [
+              // 1. Βάλε το SingleChildScrollView πρώτο, ώστε να είναι "κάτω"
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 80),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Τίτλος "Pawsitive Friend Profile"
+                      Container(
+                        width: screenWidth * 0.6,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFE4E1),
+                          borderRadius: BorderRadius.circular(16.0),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Pawsitive Friend Profile',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 30),
+                      ),
+                      const SizedBox(height: 30),
 
-                        // Εικόνα
-                        if (imageUrl != null && imageUrl != '')
+                      // Εικόνα
+                      if (imageUrl != null && imageUrl != '')
                         Container(
                           width: screenWidth * 0.8,
                           height: 150,
@@ -161,30 +161,30 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
                                 );
                               },
                               errorBuilder: (context, error, stackTrace) {
-                                return const Icon(Icons.error, color: Colors.red);
+                                return const Icon(Icons.error,
+                                    color: Colors.red);
                               },
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                        // Πεδίο "Location"
-                        _buildProfileField('Location: $location'),
+                      // Πεδίο "Location"
+                      _buildProfileField('Location: $location'),
 
-                        const SizedBox(height: 20),
+                      const SizedBox(height: 20),
 
-                        // Πεδίο "Date"
-                        _buildProfileField('Date: ${date.substring(0, 10)}'),
-                        const SizedBox(height: 30),
+                      // Πεδίο "Date"
+                      _buildProfileField('Date: ${date.substring(0, 10)}'),
+                      const SizedBox(height: 30),
 
-                        _buildProfileField('Description: $description'), 
-                         const SizedBox(height: 20),
+                      _buildProfileField('Description: $description'),
+                      const SizedBox(height: 20),
 
-
-
-                        // Επιλογές (DOG, MALE, SMALL, NOT FRIENDLY)
-                        GridView(
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      // Επιλογές (DOG, MALE, SMALL, NOT FRIENDLY)
+                      GridView(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2, // Δύο φίλτρα ανά σειρά
                           crossAxisSpacing: 10.0,
                           mainAxisSpacing: 10.0,
@@ -201,7 +201,7 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
                       ),
                       const SizedBox(height: 20),
 
-                        // -- ΣΧΟΛΙΑ --
+                      // -- ΣΧΟΛΙΑ --
                       const Text(
                         "Comments",
                         style: TextStyle(
@@ -211,13 +211,13 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
                         ),
                       ),
                       const SizedBox(height: 10),
-                      
+
                       // Εμφάνιση της λίστας των σχολίων
                       // (χρησιμοποιούμε ListView.builder μέσα σε Container με fixed height,
                       //  ή shrinkWrap: true)
                       Container(
                         width: screenWidth * 0.9,
-                        height: 200, 
+                        height: 200,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16.0),
@@ -236,15 +236,17 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
                             : ListView.builder(
                                 itemCount: comments.length,
                                 itemBuilder: (context, index) {
-                                  final c = comments[index] as Map<String, dynamic>;
+                                  final c =
+                                      comments[index] as Map<String, dynamic>;
                                   final user = c['user'] ?? 'Unknown';
                                   final text = c['text'] ?? '';
                                   final ts = c['timestamp'] ?? 0;
                                   // Μετατροπή timestamp σε ημερομηνία
-                                  final dateTime = DateTime.fromMillisecondsSinceEpoch(ts);
-                                  final dateStr = 
-                                      "${dateTime.year}-${dateTime.month.toString().padLeft(2,'0')}-${dateTime.day.toString().padLeft(2,'0')} "
-                                      "${dateTime.hour.toString().padLeft(2,'0')}:${dateTime.minute.toString().padLeft(2,'0')}";
+                                  final dateTime =
+                                      DateTime.fromMillisecondsSinceEpoch(ts);
+                                  final dateStr =
+                                      "${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} "
+                                      "${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
 
                                   return ListTile(
                                     title: Text("$user: $text"),
@@ -268,10 +270,12 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.send, color: Colors.pinkAccent),
+                            icon: const Icon(Icons.send,
+                                color: Colors.pinkAccent),
                             onPressed: () async {
                               // Πατάμε το κουμπί -> προσθήκη σχολίου
-                              await _addComment(commentController.text, documentId);
+                              await _addComment(
+                                  commentController.text, documentId);
                               //setState(() {}); // Για να ανανεωθεί το FutureBuilder
                             },
                           ),
@@ -285,78 +289,83 @@ class _PawsitiveFriendProfileScreenState extends State<PawsitiveFriendProfileScr
                 ),
               ),
 
-                  // 2. Τοποθέτησε τα Positioned widgets "πάνω" από το περιεχόμενο
-                  Positioned(
-                    top: 20,
-                    right: 20,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const MenuScreen()),
-                        );
-                      },
-                      child: Image.asset(
-                        'assets/logo/logo.png',
-                        height: 60,
-                      ),
+              // 2. Τοποθέτησε τα Positioned widgets "πάνω" από το περιεχόμενο
+              Positioned(
+                top: 20,
+                right: 20,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const MenuScreen()),
+                    );
+                  },
+                  child: Image.asset(
+                    'assets/logo/logo.png',
+                    height: 60,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 20,
+                left: 20,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.pinkAccent),
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const MenuScreen()),
+                      (route) =>
+                          false, // Αφαιρεί όλες τις προηγούμενες οθόνες από τη στοίβα
+                    );
+                  },
+                ),
+              ),
+              Positioned(
+                top: 20,
+                left: 70,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const UserProfileScreen()),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.pinkAccent, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      size: 28,
+                      color: Colors.pinkAccent,
                     ),
                   ),
-                  Positioned(
-                    top: 20,
-                    left: 20,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.pinkAccent),
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => const MapScreen()),
-                        );
-                      },
-                    ),
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                right: 20,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const BotScreen()),
+                    );
+                  },
+                  child: Image.asset(
+                    'assets/icons/bot.png',
+                    height: 60,
                   ),
-                  Positioned(
-                    top: 20,
-                    left: 70,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const UserProfileScreen()),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(8.0),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.pinkAccent, width: 2),
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          size: 28,
-                          color: Colors.pinkAccent,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 20,
-                    right: 20,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const BotScreen()),
-                        );
-                      },
-                      child: Image.asset(
-                        'assets/icons/bot.png',
-                        height: 60,
-                      ),
-                    ),
-                  ),
-              ],    
+                ),
+              ),
+            ],
           );
         },
       ),

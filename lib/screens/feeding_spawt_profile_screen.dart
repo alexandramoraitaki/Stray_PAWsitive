@@ -131,7 +131,8 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
 
                           // Ημερομηνία
                           if (date != null)
-                            _buildProfileField('Date: ${date.substring(0, 10)}'),
+                            _buildProfileField(
+                                'Date: ${date.substring(0, 10)}'),
                           const SizedBox(height: 30),
 
                           // Περιγραφή
@@ -158,7 +159,8 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const UserProfileScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const UserProfileScreen()),
                     );
                   },
                   child: Container(
@@ -184,7 +186,8 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => const MenuScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const MenuScreen()),
                     );
                   },
                   child: Image.asset(
@@ -201,7 +204,13 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                 child: IconButton(
                   icon: const Icon(Icons.arrow_back, color: Colors.pinkAccent),
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const MenuScreen()),
+                      (route) =>
+                          false, // Αφαιρεί όλες τις προηγούμενες οθόνες από τη στοίβα
+                    );
                   },
                 ),
               ),
@@ -214,7 +223,8 @@ class FeedingSpawtProfileScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const BotScreen()),
+                      MaterialPageRoute(
+                          builder: (context) => const BotScreen()),
                     );
                   },
                   child: Image.asset(
