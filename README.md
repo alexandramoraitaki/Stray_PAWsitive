@@ -1,78 +1,60 @@
-# Stray Pawsitive
+# Stray Pawsitive  
+A **Flutter application** designed to support and improve the care of stray animals.
 
-Μια Flutter εφαρμογή για την υποστήριξη και την καλύτερη φροντίδα των αδέσποτων ζώων.
-
----
-
-## Περιγραφή
-
-Η εφαρμογή **Stray Pawsitive** έχει σχεδιαστεί για να διευκολύνει τους χρήστες να εντοπίζουν, καταχωρούν, και βοηθούν αδέσποτα ζώα. Μέσω αυτής, μπορείτε να μοιράζεστε πληροφορίες, να ανεβάζετε φωτογραφίες και να βρίσκετε σημεία ενδιαφέροντος, όπως κτηνιατρεία.
+## Description
+Stray Pawsitive helps users locate, register, and assist stray animals. Users can share information, upload photos, and find points of interest such as veterinary clinics.
 
 ---
 
-## Οδηγίες Εγκατάστασης
+## Installation Instructions
+To install the app:
 
-Για να εγκαταστήσετε την εφαρμογή:
+1. **Download the APK:**  
+   [Download APK](https://drive.google.com/file/d/17ZxZqindiTjJq4_xJhswQz4Y1bc0O5xf/view?usp=drive_link)
 
-1. **Κατεβάστε το αρχείο APK**:
-   - https://drive.google.com/file/d/17ZxZqindiTjJq4_xJhswQz4Y1bc0O5xf/view?usp=drive_link
+2. **Transfer the APK to your device:**  
+   Save the `.apk` file on your device or open it directly via the browser.
 
-2. **Μεταφέρετε το αρχείο στο κινητό σας**:
-   - Αποθηκεύστε το αρχείο `.apk` στη συσκευή σας ή ανοίξτε το απευθείας μέσω του browser.
+3. **Enable "Unknown Sources":**  
+   Go to Settings > Security > Enable "Unknown Sources".
 
-3. **Ενεργοποιήστε "Άγνωστες Πηγές"**:
-   - Ρυθμίσεις > Ασφάλεια > Ενεργοποίηση "Άγνωστες Πηγές".
+4. **Install the App:**  
+   Tap the `.apk` file and follow the installation instructions.
 
-4. **Εγκατάσταση**:
-   - Πατήστε πάνω στο αρχείο `.apk` και ακολουθήστε τις οδηγίες για την εγκατάσταση.
-
-5. **Ξεκινήστε**:
-   - Ανοίξτε την εφαρμογή από την αρχική οθόνη του κινητού σας.
-
----
-
-## Οδηγίες Χρήσης
-
-1. **Δημιουργήστε έναν λογαριασμό** μέσω της επιλογής **Sign Up** ή συνδεθείτε με **Log In**.
-2. Από την κεντρική οθόνη, μπορείτε:
-   - Να καταχωρήσετε αδέσποτα ζώα.
-   - Να καταχωρήσετε σημεία τροφής.
-   - Να περιηγηθείτε σε χάρτες με τοποθεσίες (κτηνιατρεία κ.λπ.).
-3. Χρησιμοποιήστε τη λειτουργία ανεβάσματος φωτογραφιών για να μοιραστείτε την εμπειρία σας.
+5. **Launch the App:**  
+   Open it from your home screen.
 
 ---
 
-## Απαιτήσεις Συστήματος
-
-- **Ελάχιστη Έκδοση Android**: Android 8.0 (API 26) ή νεότερη.
-- **Minimum Android SDK**: 23 (Android 6.0 Marshmallow)
-- **Target Android SDK**: 34 (Android 14)
-- **Compile Android SDK**: 34 (Android 14)
-- **Build Tools Version**: 33.0.2
-- **Image Requirement**: Απαιτείται Android image **με Google API Services** λόγω χρήσης των παρακάτω λειτουργιών:
-  - Firebase (Authentication, Cloud Firestore, Storage).
-  - Google Maps (μέσω του `google_maps_flutter` package).
+## Usage Instructions
+- Sign up or log in to create an account.  
+- From the main screen, you can:  
+  - Register stray animals.  
+  - Register feeding points.  
+  - Browse maps with locations (e.g., veterinary clinics).  
+  - Upload photos to share your experience.
 
 ---
 
-## Link google drive για zip εφαρμογής
-
-https://drive.google.com/file/d/1Rzdwig6a06Ez461Ty_9R5c5x-HskHzZ4/view?usp=drive_link
-
----
-
-## Βελτιώσεις στη Τελική Φάση
-
-Η τελική έκδοση περιλαμβάνει:
-1. Βελτιωμένη εμφάνιση/χρώματα εφαρμογής.
-2. 3 δυνατά accomplishments για κάθε χρήστη (αντί για 5)
-3. Απουσία comments στα profiles
+## System Requirements
+- Minimum Android Version: 8.0 (API 26)  
+- Minimum Android SDK: 23 (Android 6.0 Marshmallow)  
+- Target Android SDK: 34 (Android 14)  
+- Compile Android SDK: 34 (Android 14)  
+- Build Tools Version: 33.0.2  
+- **Image Requirement:** Android image with Google API Services required due to the following features:  
+  - Firebase (Authentication, Cloud Firestore, Storage)  
+  - Google Maps (via `google_maps_flutter` package)
 
 ---
 
-## Σύντομο Βίντεο Παρουσίασης
-
-Ένα βίντεο παρουσίασης της εφαρμογής μπορείτε να βρείτε εδώ: https://drive.google.com/file/d/1UFjZojorbYHVQgM8_FYqeJSV9JxtrNPK/view?usp=drive_link
+## Additional Resources
+- **Full App ZIP:** [Download ZIP](https://drive.google.com/file/d/1Rzdwig6a06Ez461Ty_9R5c5x-HskHzZ4/view?usp=drive_link)  
+- **Presentation Video:** [Watch Video](https://drive.google.com/file/d/1UFjZojorbYHVQgM8_FYqeJSV9JxtrNPK/view?usp=drive_link)
 
 ---
 
+## Final Version Improvements
+- Improved UI appearance and colors.  
+- Reduced user accomplishments from 5 to 3 per user.  
+- Removed comments from user profiles.
